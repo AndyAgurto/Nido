@@ -1,4 +1,4 @@
-﻿/// Constantes globales de la aplicación Nido.
+/// Constantes globales de la aplicación Nido.
 class AppConstants {
   AppConstants._();
 

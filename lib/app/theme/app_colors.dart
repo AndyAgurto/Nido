@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 /// Paleta de colores cálida y profesional para Nido (Material 3).
 class AppColors {

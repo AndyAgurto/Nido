@@ -1,10 +1,11 @@
-﻿# 🏠 Nido — Tu hogar, en equilibrio
+# 🏡 Nido - Tu hogar, en equilibrio
 
 > **Gestión integral de finanzas del hogar, profesional, 100% LOCAL y diseñada exclusivamente para TABLET.**
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.10+-0175C2?logo=dart&logoColor=white)](https://dart.dev)
 [![Drift](https://img.shields.io/badge/Database-Drift%20SQLite-00599C)](https://drift.simonbinder.eu)
+[![Tests](https://img.shields.io/badge/Tests-34%20Passing-brightgreen)](test/)
 [![Arquitectura](https://img.shields.io/badge/Architecture-Feature--First%20Clean-success)](#arquitectura-del-proyecto)
 [![Privacidad](https://img.shields.io/badge/Privacidad-100%25%20Local%20%7C%20Zero%20Cloud-2E7D32)](#privacidad-y-restricciones-no-negociables)
 [![Formato](https://img.shields.io/badge/Tablet-Master--Detail%20%E2%89%A5840dp-E65100)](#diseño-y-experiencia-tablet)
@@ -18,15 +19,16 @@
 4. [Stack Tecnológico](#stack-tecnológico)
 5. [Arquitectura del Proyecto](#arquitectura-del-proyecto)
 6. [Modelo de Datos (SQLite / Drift)](#modelo-de-datos-sqlite--drift)
-7. [Guía de Desarrollo Local](#guía-de-desarrollo-local)
-8. [Cómo Ejecutar build_runner](#cómo-ejecutar-build_runner)
-9. [Cómo Generar APK y AAB para Android Tablet](#cómo-generar-apk-y-aab-para-android-tablet)
-10. [Respaldo, Restauración y Seguridad](#respaldo-restauración-y-seguridad)
-11. [Hoja de Ruta por Fases](#hoja-de-ruta-por-fases)
+7. [Módulos Implementados (Fases 0 a 3)](#módulos-implementados-fases-0-a-3)
+8. [Guía de Desarrollo Local y Tests](#guía-de-desarrollo-local-y-tests)
+9. [Cómo Ejecutar build_runner](#cómo-ejecutar-build_runner)
+10. [Cómo Generar APK y AAB para Android Tablet](#cómo-generar-apk-y-aab-para-android-tablet)
+11. [Respaldo, Restauración y Seguridad](#respaldo-restauración-y-seguridad)
+12. [Hoja de Ruta por Fases](#hoja-de-ruta-por-fases)
 
 ---
 
-## 🏡 Identidad del Producto
+## 🌿 Identidad del Producto
 
 - **Nombre:** Nido
 - **Eslogan:** *"Tu hogar, en equilibrio."*
@@ -40,55 +42,55 @@
 
 1. **100% Local (Zero Cloud):**
    - Sin servidores, sin APIs externas, sin Firebase, sin publicidad, sin analítica ni telemetría.
-   - El archivo `android/app/src/main/AndroidManifest.xml` **no tiene declarado el permiso de INTERNET**. Tus datos financieros nunca viajan por la red.
+   - El archivo `android/app/src/main/AndroidManifest.xml` **no tiene declarado el permiso de INTERNET**. Tus datos financieros jamás salen de la tablet.
 2. **Almacenamiento Privado Exclusivo:**
-   - La base de datos SQLite y las fotos de cotizaciones residen en el sandbox privado de la aplicación (`path_provider`).
+   - La base de datos SQLite y los archivos adjuntos residen estrictamente en el sandbox privado de la aplicación (`path_provider`).
 3. **Manejo Estricto del Dinero:**
-   - Todo monto financiero se almacena y opera como entero en céntimos (`int`).
-   - **Prohibido el uso de `double`** para montos de dinero para prevenir errores de coma flotante.
-   - Encapsulado en el Value Object inmutable `Money` con formateo en Soles peruanos (`es_PE`, `S/`).
-4. **Saldos Dinámicos Derivados:**
+   - Todo monto financiero se almacena y opera como un número entero en céntimos (`int`).
+   - **Prohibido el uso de `double`** para montos de dinero para prevenir errores de redondeo de coma flotante.
+   - Encapsulado en el Value Object inmutable `Money` con formateo en Soles peruanos (`es_PE`, `PEN`, `S/ `).
+4. **Saldos Dinámicos Derivados (Regla de Oro):**
    - El saldo de una cuenta **no se guarda en una columna de base de datos**. Se calcula de forma reactiva y determinista:
-     $$\text{Saldo} = \text{SaldoInicial} + \sum \text{Ingresos} - \sum \text{Gastos} \pm \sum \text{Transferencias}$$
+     $$\text{Saldo} = \text{SaldoInicial} + \sum \text{Ingresos} - \sum \text{Gastos} + \sum \text{Transferencias Entrantes} - \sum \text{Transferencias Salientes}$$
      (excluyendo aquellos movimientos marcados como anulados).
 5. **Cero Borrado Físico (Auditoría Total):**
    - Los movimientos nunca se eliminan físicamente: se marcan con borrado lógico (`anulado = true`), motivo obligatorio y fecha de anulación.
-   - Cada escritura, modificación o anulación se registra de forma inmutable mediante `AuditedWriter` en la tabla `Auditoria`.
+   - Cada escritura, modificación o anulación se registra de forma inmutable mediante `AuditedWriter` en la tabla `auditoria` con el JSON del estado antes y después.
 
 ---
 
-## 📐 Diseño y Experiencia Tablet
+## 📱 Diseño y Experiencia Tablet
 
-Nido fue concebida desde cero para pantallas grandes:
+Nido fue concebida desde el primer momento para pantallas grandes ($\ge 840\,\text{dp}$):
 
-- **Orientación:** Horizontal (landscape) como principal, con adaptación fluida a vertical (portrait).
-- **Navegación Lateral:** `NavigationRail` persistente en el lateral izquierdo con 9 secciones principales y objetivos táctiles accesibles ($\ge 48\,\text{dp}$).
+- **Orientación:** Horizontal (*landscape*) como principal, con adaptación fluida a vertical (*portrait*).
+- **Navegación Lateral:** `NavigationRail` persistente en el lateral izquierdo con objetivos táctiles accesibles ($\ge 48\,\text{dp}$).
 - **Layout Adaptable en Dos Paneles (`MasterDetailLayout`):**
-  - **Ancho $\ge 840\,\text{dp}$:** Panel maestro (lista/resumen a la izquierda) y panel de detalle completo a la derecha.
+  - **Ancho $\ge 840\,\text{dp}$:** Panel maestro (lista/resumen a la izquierda de 380 dp) y panel de detalle interactivo a la derecha.
   - **Ancho $< 840\,\text{dp}$:** Navegación secuencial adaptativa.
 - **Sistema de Diseño (Material 3 Cálido):**
-  - **Primario:** Verde esmeralda profundo (`#0D5D38`) que transmite solidez y calma hogareña.
-  - **Fondo:** Crema y lino cálido (`#FAF8F3`) que evita el blanco frío.
-  - **Acentos:** Terracota suave (`#B84A28`) para alertas y gastos; verde natural (`#15803D`) para ingresos.
+  - **Primario:** Verde salvia y bosque (`#4B6454` / `#0D5D38`) que transmite solidez y serenidad hogareña.
+  - **Fondo:** Crema y lino cálido (`#FAF8F3`) que evita el blanco frío industrial.
+  - **Acentos:** Terracota suave (`#B84A28`) para alertas y gastos; verde natural (`#15803D`) para ingresos; azul pizarra (`#2563EB`) para transferencias.
   - **Modos:** Soporte completo para Modo Claro y Modo Oscuro (grafito cálido).
 
 ---
 
-## 💼 Reglas de Negocio Clave
+## 💡 Reglas de Negocio Clave
 
 - **Resumen Mensual:**
   $$\text{Disponible} = \text{Ingresos} - \text{Gastos Fijos} - \text{Gastos Variables} - \text{Aportes a Proyectos}$$
   Comparación porcentual automática frente al mes inmediatamente anterior ($\pm\%$).
 - **Generación Mensual Idempotente de Fijos:**
-  Al abrir un nuevo mes (`yyyy-MM`), se autogeneran las instancias pendientes de gastos e ingresos fijos sin duplicación.
+  Al abrir un nuevo mes (`yyyy-MM`), se autogeneran las cuotas pendientes de gastos fijos sin duplicación (`generarInstanciasMensuales`).
 - **Marcar Fijo como Pagado:**
-  Operación transaccional ACID: crea el `Movimiento` enlazado con la cuenta elegida, actualiza el estado de la instancia y registra la bitácora de auditoría.
+  Operación transaccional ACID: crea el `Movimiento` de gasto enlazado con la cuenta elegida, actualiza el estado de la instancia en `gastos_fijos_pagos` y registra la bitácora de auditoría.
 - **Transferencias entre Cuentas:**
-  Descuenta de la cuenta de origen y suma a la de destino. No computa como gasto ni ingreso en los reportes de rendimiento.
+  Descuenta de la cuenta de origen y suma a la de destino. No computa como gasto ni ingreso en los reportes de rendimiento neto.
 - **Presupuesto por Categoría:**
-  Barra de progreso visual con alerta de prevención al 80% y alerta crítica al 100%.
-- **Proyectos y Comparador de Cotizaciones:**
-  Presupuesto estimado vs suma de cotizaciones seleccionadas vs gasto real ejecutado. Permite fotografiar cotizaciones físicas y resalta automáticamente la oferta más económica.
+  Barra de progreso visual con alerta de advertencia al 80% (ámbar) y alerta crítica al 100% (terracota sobregirado).
+- **Copia de Presupuestos:**
+  Posibilidad de copiar íntegramente las asignaciones del mes anterior con un solo toque y de forma idempotente.
 
 ---
 
@@ -97,11 +99,12 @@ Nido fue concebida desde cero para pantallas grandes:
 | Componente | Tecnología |
 | :--- | :--- |
 | **Framework** | Flutter 3.38+ / Dart 3.10+ (Records, Sealed Classes, Null Safety) |
-| **Base de Datos** | Drift + `drift_flutter` + SQLite nativo embebido |
-| **Gestión de Estado** | Riverpod (`flutter_riverpod`) |
+| **Base de Datos** | Drift 2.22+ + `drift_flutter` + SQLite nativo embebido |
+| **Gestión de Estado** | Riverpod 2.6+ (`flutter_riverpod`) |
+| **Aritmética Financiera** | `Money` Value Object (céntimos enteros `int`, formato `es_PE`) |
 | **Navegación** | GoRouter (`go_router`) |
 | **Gráficos** | FL Chart (`fl_chart`) |
-| **Formato e I18n** | `intl` (`es_PE`) + `flutter_localizations` |
+| **Formato e I18n** | `intl` (`es_PE`) + utilidades seguras `AppDateFormats` |
 | **Respaldo y Archivos** | `path_provider`, `archive`, `file_picker`, `share_plus` |
 | **Fotografías** | `image_picker` con copia en sandbox privado y rutas relativas |
 | **Seguridad Local** | `local_auth` (biometría), `flutter_secure_storage` y `crypto` (hashing con sal) |
@@ -111,11 +114,11 @@ Nido fue concebida desde cero para pantallas grandes:
 
 ## 🏛️ Arquitectura del Proyecto
 
-Organización **Feature-First** con capas limpias concéntricas:
+Organización **Feature-First / Clean Architecture** con capas concéntricas:
 
 ```text
 lib/
-├── main.dart                 # Punto de entrada y arranque de ProviderScope
+├── main.dart                 # Inicialización de Flutter, formato es_PE y ProviderScope
 ├── app/                      # Configuración global de la aplicación
 │   ├── app.dart              # NidoApp, temas y delegados de localización
 │   ├── constants/            # Constantes globales (moneda PEN, breakpoints)
@@ -124,97 +127,105 @@ lib/
 ├── core/                     # Código transversal compartido
 │   ├── database/             # AppDatabase Drift, migraciones y seeds
 │   │   ├── tables/           # Definición de tablas SQLite
-│   │   └── daos/             # Data Access Objects tipados
-│   ├── money/                # Value Object Money (céntimos, operaciones, formato)
+│   │   └── daos/             # Data Access Objects tipados (Cuentas, Movimientos, etc.)
+│   ├── money/                # Value Object Money (céntimos, operaciones, formato S/)
 │   ├── audit/                # AuditService y AuditedWriter transaccional
-│   ├── utils/                # Utilidades de fecha, validadores, periodos yyyy-MM
-│   └── widgets/              # Widgets base (TabletScaffold, MasterDetailLayout)
+│   ├── utils/                # Utilidades de fecha localizadas (AppDateFormats)
+│   └── widgets/              # Widgets base para tablet (TabletScaffold, MasterDetailLayout)
 └── features/                 # Módulos organizados por característica de negocio
-    ├── onboarding/           # Bienvenida en 3 pasos, configuración inicial
     ├── dashboard/            # Resumen financiero mensual y métricas ejecutivas
-    ├── cuentas/              # Gestión de cuentas, bolsillos y transferencias
-    ├── movimientos/          # Ingresos, gastos, arqueos y anulación lógica
-    ├── gastos_fijos/         # Plantillas recurrentes y generación mensual
-    ├── presupuesto/          # Presupuesto mensual por categoría y alertas
+    ├── cuentas/              # Gestión de cuentas, saldos calculados y transferencias
+    ├── movimientos/          # Ingresos, gastos, transferencias, filtros y anulación
+    ├── gastos_fijos/         # Plantillas recurrentes, vencimientos y "Marcar Pagado"
+    ├── presupuesto/          # Presupuesto mensual por categoría y alertas 80%/100%
     ├── proyectos/            # Proyectos de hogar, partidas y cotizaciones con fotos
     ├── reportes/             # Gráficos de distribución, comparativas y exportación CSV
     ├── auditoria/            # Bitácora inmutable consultable con diff visual
     └── ajustes/              # Moneda, categorías, PIN, respaldo y restauración
 ```
 
-Cada feature contiene estrictamente sus capas:
-- `domain/`: Entidades de negocio, Value Objects y casos de uso.
-- `data/`: Repositorios y adaptadores de Drift.
-- `presentation/`: Pantallas optimizadas para tablet, controladores/providers y widgets de la vista.
+---
+
+## ✨ Módulos Implementados (Fases 0 a 3)
+
+### Fase 1: Dominio, Base de Datos y Auditoría
+- **Value Object `Money`**: Operaciones monetarias exactas con enteros (`cents`), suma, resta, multiplicación, división, comparaciones y formateo en Soles (`S/ 1,250.50`).
+- **Drift SQLite v1**: 13 tablas completas (`cuentas`, `categorias`, `movimientos`, `gastos_fijos`, `gastos_fijos_pagos`, `ingresos_fijos`, `ingresos_fijos_cobros`, `presupuestos_mensuales`, `proyectos`, `partidas_proyecto`, `cotizaciones`, `auditoria`, `ajustes`).
+- **Semillas Iniciales**: Categorías predeterminadas para el hogar (Alimentación, Servicios, Mantenimiento, etc.) y ajustes de fábrica.
+- **Auditoría Transaccional**: `AuditedWriter` encapsula escrituras en transacciones SQLite asegurando que cada mutación guarde un registro en la tabla `auditoria` con snapshots JSON del antes y después.
+
+### Fase 2: Cuentas y Movimientos
+- **Cuentas**:
+  - CRUD completo para cuentas de Efectivo, Banco, Billetera Digital e Inversión.
+  - Cálculo de saldos en tiempo real sin columna en la BD.
+  - Dialog modal para transferencias entre cuentas auditadas.
+- **Movimientos**:
+  - Registro de Ingresos, Gastos y Transferencias con validación en céntimos.
+  - Filtros reactivos por mes, tipo de movimiento, cuenta asociada y buscador en tiempo real.
+  - Anulación lógica obligatoria con motivo justificado y fecha.
+  - Reversión/restauración de movimientos anulados.
+  - Layout Master-Detail de 2 paneles optimizado para tablet.
+
+### Fase 3: Gastos/Ingresos Fijos y Presupuestos
+- **Gastos e Ingresos Fijos**:
+  - Plantillas recurrentes con día de vencimiento (1 al 31) y cuenta asignada.
+  - Generación mensual idempotente que evita duplicar cuotas del mismo periodo.
+  - Control de estados de vencimiento: `PAGADO`, `VENCIDO`, `VENCE HOY` y `Vence en X días`.
+  - Acción "Marcar Pagado" que genera un movimiento vinculado y descuenta el saldo de la cuenta atómicamente.
+- **Presupuestos Mensuales**:
+  - Asignación por categoría para el periodo (`yyyy-MM`).
+  - Barras de progreso con código de color dinámico.
+  - Alerta de advertencia al superar el **80%** de ejecución.
+  - Alerta crítica al alcanzar o superar el **100%** con indicador de sobregiro.
+  - Acción para copiar presupuestos del mes anterior de manera idempotente.
 
 ---
 
-## 🗄️ Modelo de Datos (SQLite / Drift)
-
-Todas las tablas cuentan con `id` autoincremental, `creadoEn` y `actualizadoEn`. Montos siempre en céntimos (`int`).
-
-1. **Cuentas:** `nombre`, `tipo` *(efectivo, banco, ahorro, tarjeta, otro)*, `saldoInicialCent`, `activa`, `color`, `icono`.
-2. **Categorias:** `nombre`, `tipo` *(ingreso, gastoFijo, gastoVariable, proyecto)*, `icono`, `color`, `esSistema`, `activa`.
-3. **Movimientos:** `fecha`, `tipo` *(ingreso, gasto, transferencia)*, `montoCent`, `cuentaOrigenId`, `cuentaDestinoId` *(transferencias)*, `categoriaId`, `descripcion`, `notas`, `gastoFijoPagoId`, `partidaId`, `anulado`, `anuladoEn`, `motivoAnulacion`.
-4. **GastosFijos (Plantillas):** `nombre`, `montoEstimadoCent`, `categoriaId`, `cuentaPagoId`, `diaVencimiento` *(1-31)*, `frecuencia`, `fechaInicio`, `fechaFin`, `activo`.
-5. **GastosFijosPagos (Instancias Mensuales):** `gastoFijoId`, `periodo` *(yyyy-MM)*, `montoEsperadoCent`, `estado` *(pendiente, pagado, omitido)*, `movimientoId`, `fechaVencimiento`.
-6. **IngresosFijos (Plantillas):** `nombre`, `montoEstimadoCent`, `cuentaId`, `diaCobro`, `frecuencia`, `activo`.
-7. **IngresosFijosCobros (Instancias Mensuales):** Análoga a gastos fijos para ingresos esperados.
-8. **PresupuestosMensuales:** `periodo` *(yyyy-MM)*, `categoriaId`, `montoCent`. Clave única `(periodo, categoriaId)`.
-9. **Proyectos:** `nombre`, `descripcion`, `tipo` *(decoracion, construccion, arreglo, mobiliario, otro)*, `estado`, `presupuestoObjetivoCent`, `fechaInicioEstimada`, `fechaFinEstimada`, `prioridad`.
-10. **PartidasProyecto:** `proyectoId`, `nombre`, `descripcion`, `presupuestoCent`, `cotizacionElegidaId`, `estado`.
-11. **Cotizaciones:** `partidaId`, `proveedor`, `contacto`, `montoCent`, `fecha`, `vigenteHasta`, `notas`, `fotoRutaRelativa`, `elegida`.
-12. **Auditoria:** `id`, `fechaHora`, `entidad`, `entidadId`, `accion` *(crear, editar, anular, restaurar, etc.)*, `valorAnteriorJson`, `valorNuevoJson`, `resumen`.
-13. **Ajustes:** Configuración clave/valor (`moneda`, `pinHash`, `salt`, `ultimoRespaldo`, etc.).
-
----
-
-## 💻 Guía de Desarrollo Local
+## 🧪 Guía de Desarrollo Local y Tests
 
 ### Requisitos Previos
 - **Flutter SDK:** $\ge 3.38.0$ (Canal Stable).
 - **Dart SDK:** $\ge 3.10.0$.
-- Android Studio / VS Code con extensiones de Flutter y Dart.
 
-### Instalación
-1. Ubícate en el directorio del proyecto:
-   ```bash
-   cd C:\Users\ANDY\source\repos\nido
-   ```
-2. Descarga e instala las dependencias:
-   ```bash
-   flutter pub get
-   ```
-3. Ejecuta el análisis estático y pruebas:
-   ```bash
-   flutter analyze
-   flutter test
-   ```
+### Ejecutar Pruebas Automatizadas
+La suite de pruebas cubre cálculo dinámico de saldos, anulación de movimientos, generación idempotente de gastos fijos, alertas presupuestarias, Value Object `Money`, transaccionalidad de auditoría y renderizado tablet:
+
+```bash
+flutter test
+```
+
+Salida esperada:
+```text
+00:03 +34: All tests passed!
+```
+
+### Ejecutar Análisis Estático
+```bash
+flutter analyze
+```
+Salida esperada:
+```text
+No issues found!
+```
 
 ---
 
 ## ⚙️ Cómo Ejecutar build_runner
 
-Drift genera código tipado de base de datos (`app_database.g.dart`). Para generar o regenerar este código:
+Drift genera código tipado de base de datos (`app_database.g.dart`). Para regenerar este código:
 
-### Ejecución Única (Recomendada al actualizar tablas o DAOs)
 ```bash
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-### Modo Escucha Activa (Durante desarrollo de persistencia)
-```bash
-dart run build_runner watch --delete-conflicting-outputs
-```
-
 ---
 
-## 📱 Cómo Generar APK y AAB para Android Tablet
+## 📦 Cómo Generar APK y AAB para Android Tablet
 
 Dado que Nido es una aplicación estrictamente local, la compilación de producción para Android genera un paquete seguro y liviano:
 
 ### 1. Generar APK de Producción (Release)
-Para generar un APK optimizado por arquitectura de procesador:
+Para generar un APK optimizado por arquitectura:
 ```bash
 flutter build apk --release --split-per-abi
 ```
@@ -229,22 +240,11 @@ Para generar un único APK universal instalable en cualquier tablet:
 ```bash
 flutter build apk --release
 ```
-Ubicación:
-```text
-build/app/outputs/flutter-apk/app-release.apk
-```
 
 ### 2. Generar Android App Bundle (AAB)
-Si se desea empaquetar en formato bundle para distribución en Play Store o tiendas privadas:
 ```bash
 flutter build appbundle --release
 ```
-Ubicación:
-```text
-build/app/outputs/bundle/release/app-release.aab
-```
-
-> **Verificación de Seguridad:** Puedes verificar que el APK final no incluye permisos de red inspeccionando el paquete con Android Asset Packaging Tool (`aapt dump permissions app-release.apk`).
 
 ---
 
@@ -258,30 +258,27 @@ nido_backup_2026-10-10_1830.zip
 ├── backup_meta.json      # Versión del esquema, fecha de exportación y hash de integridad
 └── fotos/                # Copia de las fotos de cotizaciones físicas
 ```
-- Se puede guardar en una memoria USB, carpeta local elegida por el usuario o compartir vía `share_plus`.
 
 ### 2. Restauración Segura
 - **Validación previa:** Comprueba compatibilidad de la versión del esquema SQLite.
 - **Copia de seguridad preventiva:** Crea automáticamente una copia de la base actual antes de reemplazarla por el respaldo importado.
-- Si ocurre algún error en la descompresión, la base de datos se restaura a su estado original sin pérdida de datos.
 
 ### 3. Seguridad Local (PIN y Biometría)
-- El PIN nunca se almacena en texto plano: se genera un hash criptográfico SHA-256 / PBKDF2 combinado con un `salt` aleatorio único por instalación.
-- El hash y el salt se resguardan en `flutter_secure_storage` (KeyStore en Android).
+- El PIN nunca se almacena en texto plano: se genera un hash criptográfico PBKDF2 combinado con un `salt` aleatorio único por instalación guardado en `flutter_secure_storage`.
 - Soporte para autenticación biométrica (`local_auth`) al iniciar o regresar de segundo plano.
 
 ---
 
-## 🚀 Hoja de Ruta por Fases
+## 🗺️ Hoja de Ruta por Fases
 
 - [x] **Fase 0: Scaffolding, Base Tablet y Lints**
-  - Entorno configurado, dependencias resueltas, AndroidManifest sin red, tema M3, layout dual y pruebas base en verde.
-- [ ] **Fase 1: Motor de Dominio, Money y Drift con Auditoría**
-  - Value Object `Money`, 12 tablas SQLite, índices, `AuditedWriter`, seeds de categorías y tests unitarios.
-- [ ] **Fase 2: Cuentas, Movimientos y Anulación Lógica**
-  - Saldos dinámicos, transferencias, anulación justificada y vistas Tablet Master-Detail.
-- [ ] **Fase 3: Gastos e Ingresos Fijos & Presupuestos**
-  - Generación mensual idempotente, acción "Marcar Pagado" y alertas presupuestarias 80%/100%.
+  - Entorno configurado, dependencias resueltas, AndroidManifest sin red, tema M3, layout dual y pruebas base.
+- [x] **Fase 1: Motor de Dominio, Money y Drift con Auditoría**
+  - Value Object `Money`, 13 tablas SQLite, índices, `AuditedWriter`, seeds de categorías, ajustes y DAOs.
+- [x] **Fase 2: Cuentas, Movimientos y Anulación Lógica**
+  - Saldos dinámicos calculados, transferencias, filtros avanzados, anulación justificada, restauración y vistas Tablet Master-Detail.
+- [x] **Fase 3: Gastos e Ingresos Fijos & Presupuestos**
+  - Generación mensual idempotente, vencimientos (`PAGADO`, `VENCIDO`, `VENCE HOY`), acción "Marcar Pagado" vinculada y alertas presupuestarias 80%/100% con copia del mes anterior.
 - [ ] **Fase 4: Proyectos del Hogar & Cotizaciones con Fotos**
   - Partidas, fotos de presupuestos en sandbox y comparador con resaltado del menor precio.
 - [ ] **Fase 5: Dashboard del Hogar & Reportes Visuales**

@@ -1,8 +1,12 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'constants/app_constants.dart';
 import 'theme/app_theme.dart';
 import '../core/widgets/tablet_scaffold.dart';
+import '../features/cuentas/presentation/cuentas_page.dart';
+import '../features/movimientos/presentation/movimientos_page.dart';
+import '../features/gastos_fijos/presentation/gastos_fijos_page.dart';
+import '../features/presupuesto/presentation/presupuesto_page.dart';
 
 /// Widget principal de Nido.
 class NidoApp extends StatefulWidget {
@@ -13,7 +17,7 @@ class NidoApp extends StatefulWidget {
 }
 
 class _NidoAppState extends State<NidoApp> {
-  int _currentNavIndex = 0;
+  int _currentNavIndex = 0; // Inicia por defecto en Cuentas (Fase 2)
 
   static const List<String> _sectionTitles = [
     'Dashboard',
@@ -26,6 +30,24 @@ class _NidoAppState extends State<NidoApp> {
     'Bitácora de Auditoría',
     'Ajustes del Sistema',
   ];
+
+  Widget _buildBody() {
+    switch (_currentNavIndex) {
+      case 1:
+        return const CuentasPage();
+      case 2:
+        return const MovimientosPage();
+      case 3:
+        return const GastosFijosPage();
+      case 4:
+        return const PresupuestoPage();
+      default:
+        return _BaseTabletContent(
+          title: _sectionTitles[_currentNavIndex],
+          sectionIndex: _currentNavIndex,
+        );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,10 +74,7 @@ class _NidoAppState extends State<NidoApp> {
             _currentNavIndex = index;
           });
         },
-        body: _BaseTabletContent(
-          title: _sectionTitles[_currentNavIndex],
-          sectionIndex: _currentNavIndex,
-        ),
+        body: _buildBody(),
       ),
     );
   }
@@ -149,7 +168,7 @@ class _BaseTabletContent extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    'Fase 0: Base arquitectónica inicial lista para implementar módulos',
+                    'Sección "$title": Módulo preparado para próximas fases',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w500,
                     ),

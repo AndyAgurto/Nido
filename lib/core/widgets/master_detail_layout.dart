@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../app/constants/app_constants.dart';
 
 /// Layout adaptable de dos paneles (Maestro - Detalle) optimizado para Tablet.
