@@ -1,45 +1,107 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
+﻿# ==============================================================================
+# .gitignore para Proyecto Flutter "Nido"
+# ==============================================================================
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# ------------------------------------------------------------------------------
+# 1. Archivos temporales de compilación de Flutter y Dart
+# ------------------------------------------------------------------------------
 .dart_tool/
-.flutter-plugins-dependencies
 .pub-cache/
 .pub/
 /build/
 /coverage/
+**/doc/api/
+.flutter-plugins
+.flutter-plugins-dependencies
 
-# Symbolication related
+# Archivos de símbolos y ofuscación
 app.*.symbols
-
-# Obfuscation related
 app.*.map.json
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# ------------------------------------------------------------------------------
+# 2. Artefactos de compilación de escritorio (Windows, Linux, macOS)
+# ------------------------------------------------------------------------------
+# Windows
+windows/flutter/ephemeral/
+windows/flutter/generated_plugins.cmake
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugin_registrant.h
+windows/flutter/generated_plugins.cmake
+
+# Linux
+linux/flutter/ephemeral/
+linux/flutter/generated_plugins.cmake
+linux/flutter/generated_plugin_registrant.cc
+linux/flutter/generated_plugin_registrant.h
+
+# macOS
+macos/Flutter/ephemeral/
+macos/Flutter/GeneratedPluginRegistrant.swift
+
+# ------------------------------------------------------------------------------
+# 3. Artefactos de Android
+# ------------------------------------------------------------------------------
+.gradle/
+android/.gradle/
+android/app/debug/
+android/app/profile/
+android/app/release/
+android/local.properties
+android/key.properties
+*.keystore
+*.jks
+
+# ------------------------------------------------------------------------------
+# 4. Artefactos de iOS
+# ------------------------------------------------------------------------------
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/GeneratedPluginRegistrant.h
+ios/Flutter/GeneratedPluginRegistrant.m
+ios/Flutter/.last_build_id
+ios/.symlinks/
+ios/Pods/
+ios/Podfile.lock
+
+# ------------------------------------------------------------------------------
+# 5. Base de datos SQLite local, respaldos y exportaciones (100% privado)
+# ------------------------------------------------------------------------------
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
+*.db
+*.zip
+*.csv
+
+# ------------------------------------------------------------------------------
+# 6. Entornos de desarrollo e IDEs
+# ------------------------------------------------------------------------------
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ------------------------------------------------------------------------------
+# 7. Archivos del Sistema Operativo
+# ------------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
+
+# Logs y volcados de memoria
+*.log
+*.crash
