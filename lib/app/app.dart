@@ -7,6 +7,7 @@ import '../features/cuentas/presentation/cuentas_page.dart';
 import '../features/movimientos/presentation/movimientos_page.dart';
 import '../features/gastos_fijos/presentation/gastos_fijos_page.dart';
 import '../features/presupuesto/presentation/presupuesto_page.dart';
+import '../features/proyectos/presentation/proyectos_page.dart';
 
 /// Widget principal de Nido.
 class NidoApp extends StatefulWidget {
@@ -41,6 +42,8 @@ class _NidoAppState extends State<NidoApp> {
         return const GastosFijosPage();
       case 4:
         return const PresupuestoPage();
+      case 5:
+        return const ProyectosPage();
       default:
         return _BaseTabletContent(
           title: _sectionTitles[_currentNavIndex],

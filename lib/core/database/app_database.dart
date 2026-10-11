@@ -17,6 +17,7 @@ import 'daos/categorias_dao.dart';
 import 'daos/ajustes_dao.dart';
 import 'daos/gastos_fijos_dao.dart';
 import 'daos/presupuestos_dao.dart';
+import 'daos/proyectos_dao.dart';
 
 part 'app_database.g.dart';
 
@@ -44,6 +45,7 @@ part 'app_database.g.dart';
     AjustesDao,
     GastosFijosDao,
     PresupuestosDao,
+    ProyectosDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {

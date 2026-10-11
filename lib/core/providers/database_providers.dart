@@ -6,6 +6,7 @@ import '../database/daos/categorias_dao.dart';
 import '../database/daos/ajustes_dao.dart';
 import '../database/daos/gastos_fijos_dao.dart';
 import '../database/daos/presupuestos_dao.dart';
+import '../database/daos/proyectos_dao.dart';
 import '../audit/audited_writer.dart';
 import '../audit/audit_service.dart';
 
@@ -51,4 +52,7 @@ final gastosFijosDaoProvider = Provider<GastosFijosDao>((ref) {
 
 final presupuestosDaoProvider = Provider<PresupuestosDao>((ref) {
   return ref.watch(databaseProvider).presupuestosDao;
+});
+final proyectosDaoProvider = Provider<ProyectosDao>((ref) {
+  return ref.watch(databaseProvider).proyectosDao;
 });

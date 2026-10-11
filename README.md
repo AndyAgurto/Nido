@@ -1,25 +1,25 @@
-# 🏡 Nido - Tu hogar, en equilibrio
+﻿# 🏠 Nido - Tu hogar, en equilibrio
 
 > **Gestión integral de finanzas del hogar, profesional, 100% LOCAL y diseñada exclusivamente para TABLET.**
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.10+-0175C2?logo=dart&logoColor=white)](https://dart.dev)
 [![Drift](https://img.shields.io/badge/Database-Drift%20SQLite-00599C)](https://drift.simonbinder.eu)
-[![Tests](https://img.shields.io/badge/Tests-34%20Passing-brightgreen)](test/)
+[![Tests](https://img.shields.io/badge/Tests-39%20Passing-brightgreen)](test/)
 [![Arquitectura](https://img.shields.io/badge/Architecture-Feature--First%20Clean-success)](#arquitectura-del-proyecto)
 [![Privacidad](https://img.shields.io/badge/Privacidad-100%25%20Local%20%7C%20Zero%20Cloud-2E7D32)](#privacidad-y-restricciones-no-negociables)
 [![Formato](https://img.shields.io/badge/Tablet-Master--Detail%20%E2%89%A5840dp-E65100)](#diseño-y-experiencia-tablet)
 
 ---
 
-## 📋 Tabla de Contenidos
+## 📑 Tabla de Contenidos
 1. [Identidad del Producto](#identidad-del-producto)
 2. [Privacidad y Restricciones No Negociables](#privacidad-y-restricciones-no-negociables)
 3. [Reglas de Negocio Clave](#reglas-de-negocio-clave)
 4. [Stack Tecnológico](#stack-tecnológico)
 5. [Arquitectura del Proyecto](#arquitectura-del-proyecto)
 6. [Modelo de Datos (SQLite / Drift)](#modelo-de-datos-sqlite--drift)
-7. [Módulos Implementados (Fases 0 a 3)](#módulos-implementados-fases-0-a-3)
+7. [Módulos Implementados (Fases 0 a 4)](#módulos-implementados-fases-0-a-4)
 8. [Guía de Desarrollo Local y Tests](#guía-de-desarrollo-local-y-tests)
 9. [Cómo Ejecutar build_runner](#cómo-ejecutar-build_runner)
 10. [Cómo Generar APK y AAB para Android Tablet](#cómo-generar-apk-y-aab-para-android-tablet)
@@ -28,7 +28,7 @@
 
 ---
 
-## 🌿 Identidad del Producto
+## 🏡 Identidad del Producto
 
 - **Nombre:** Nido
 - **Eslogan:** *"Tu hogar, en equilibrio."*
@@ -38,13 +38,13 @@
 
 ---
 
-## 🛡️ Privacidad y Restricciones No Negociables
+## 🔒 Privacidad y Restricciones No Negociables
 
 1. **100% Local (Zero Cloud):**
    - Sin servidores, sin APIs externas, sin Firebase, sin publicidad, sin analítica ni telemetría.
    - El archivo `android/app/src/main/AndroidManifest.xml` **no tiene declarado el permiso de INTERNET**. Tus datos financieros jamás salen de la tablet.
 2. **Almacenamiento Privado Exclusivo:**
-   - La base de datos SQLite y los archivos adjuntos residen estrictamente en el sandbox privado de la aplicación (`path_provider`).
+   - La base de datos SQLite y los archivos adjuntos (fotos de cotizaciones) residen estrictamente en el sandbox privado de la aplicación (`path_provider`).
 3. **Manejo Estricto del Dinero:**
    - Todo monto financiero se almacena y opera como un número entero en céntimos (`int`).
    - **Prohibido el uso de `double`** para montos de dinero para prevenir errores de redondeo de coma flotante.
@@ -91,6 +91,9 @@ Nido fue concebida desde el primer momento para pantallas grandes ($\ge 840\,\te
   Barra de progreso visual con alerta de advertencia al 80% (ámbar) y alerta crítica al 100% (terracota sobregirado).
 - **Copia de Presupuestos:**
   Posibilidad de copiar íntegramente las asignaciones del mes anterior con un solo toque y de forma idempotente.
+- **Avance Consolidado de Proyectos:**
+  $$\text{Avance} = \text{Presupuesto Base} \quad\text{vs}\quad \text{Total Cotizado Adjudicado} \quad\text{vs}\quad \text{Gastado Real Ejecutado}$$
+  Permite monitorear el ahorro proyectado frente al presupuesto y el control de desembolsos reales por partida.
 
 ---
 
@@ -112,7 +115,7 @@ Nido fue concebida desde el primer momento para pantallas grandes ($\ge 840\,\te
 
 ---
 
-## 🏛️ Arquitectura del Proyecto
+## 📐 Arquitectura del Proyecto
 
 Organización **Feature-First / Clean Architecture** con capas concéntricas:
 
@@ -127,7 +130,7 @@ lib/
 ├── core/                     # Código transversal compartido
 │   ├── database/             # AppDatabase Drift, migraciones y seeds
 │   │   ├── tables/           # Definición de tablas SQLite
-│   │   └── daos/             # Data Access Objects tipados (Cuentas, Movimientos, etc.)
+│   │   └── daos/             # Data Access Objects tipados (Cuentas, Movimientos, Proyectos, etc.)
 │   ├── money/                # Value Object Money (céntimos, operaciones, formato S/)
 │   ├── audit/                # AuditService y AuditedWriter transaccional
 │   ├── utils/                # Utilidades de fecha localizadas (AppDateFormats)
@@ -138,7 +141,7 @@ lib/
     ├── movimientos/          # Ingresos, gastos, transferencias, filtros y anulación
     ├── gastos_fijos/         # Plantillas recurrentes, vencimientos y "Marcar Pagado"
     ├── presupuesto/          # Presupuesto mensual por categoría y alertas 80%/100%
-    ├── proyectos/            # Proyectos de hogar, partidas y cotizaciones con fotos
+    ├── proyectos/            # Proyectos de hogar, partidas, comparador y cotizaciones con fotos
     ├── reportes/             # Gráficos de distribución, comparativas y exportación CSV
     ├── auditoria/            # Bitácora inmutable consultable con diff visual
     └── ajustes/              # Moneda, categorías, PIN, respaldo y restauración
@@ -146,7 +149,7 @@ lib/
 
 ---
 
-## ✨ Módulos Implementados (Fases 0 a 3)
+## 📦 Módulos Implementados (Fases 0 a 4)
 
 ### Fase 1: Dominio, Base de Datos y Auditoría
 - **Value Object `Money`**: Operaciones monetarias exactas con enteros (`cents`), suma, resta, multiplicación, división, comparaciones y formateo en Soles (`S/ 1,250.50`).
@@ -179,6 +182,35 @@ lib/
   - Alerta crítica al alcanzar o superar el **100%** con indicador de sobregiro.
   - Acción para copiar presupuestos del mes anterior de manera idempotente.
 
+### Fase 4: Proyectos del Hogar & Cotizaciones con Fotos
+- **Proyectos con Estados**:
+  - Tipos: Decoración, Construcción, Arreglo, Mobiliario u Otro.
+  - Ciclo de estados: `idea`, `cotizando`, `aprobado`, `enEjecucion`, `terminado` y `cancelado`.
+  - Prioridad: Alta, Media, Baja.
+  - Fechas estimadas de inicio y fin con presupuesto objetivo en Soles (`Money`).
+- **Partidas Presupuestarias**:
+  - Desglose por rubros/partidas dentro de cada proyecto con presupuesto asignado.
+  - Estados por partida: `pendiente`, `cotizado`, `adjudicado` y `completado`.
+- **Cotizaciones con Foto Física (Local Sandbox)**:
+  - Registro de proveedores, monto en Soles, vigencia y notas.
+  - Captura con cámara o galería mediante `image_picker`.
+  - Las fotos se copian al directorio privado de la app (`getApplicationDocumentsDirectory()/cotizaciones_fotos/`) persistiendo **únicamente la ruta relativa** en SQLite, garantizando portabilidad de respaldos.
+  - Visor modal de fotografía con zoom interactivo (`InteractiveViewer`).
+- **Comparador de Cotizaciones**:
+  - Lista comparativa por partida que resalta visualmente la opción **"MÁS ECONÓMICA"**.
+  - Cálculo de ahorro o sobrecosto frente al presupuesto asignado.
+  - Selector de **"Elegir Ganadora"**: adjudicación atómica que vincula la cotización elegida a la partida, actualiza su estado a `adjudicado` y desmarca cotizaciones previas. Acción completamente reversible.
+- **Avance Consolidado: Presupuesto vs Cotizado vs Gastado Real**:
+  - Tarjeta de avance financiero con métricas clave:
+    - Presupuesto objetivo del proyecto vs Suma de partidas.
+    - Total de cotizaciones ganadoras adjudicadas.
+    - Total gastado real desembolsado.
+    - Saldo disponible restante.
+    - Barras de progreso duales (porcentaje cotizado y porcentaje ejecutado).
+- **Vinculación de Movimientos a Partidas**:
+  - Modal para registrar gastos reales directos vinculados a una partida específica.
+  - Descuenta el saldo de la cuenta bancaria seleccionada e incrementa el gasto real del proyecto con trazabilidad en tiempo real y bitácora de auditoría.
+
 ---
 
 ## 🧪 Guía de Desarrollo Local y Tests
@@ -188,7 +220,7 @@ lib/
 - **Dart SDK:** $\ge 3.10.0$.
 
 ### Ejecutar Pruebas Automatizadas
-La suite de pruebas cubre cálculo dinámico de saldos, anulación de movimientos, generación idempotente de gastos fijos, alertas presupuestarias, Value Object `Money`, transaccionalidad de auditoría y renderizado tablet:
+La suite de pruebas cubre cálculo dinámico de saldos, anulación de movimientos, generación idempotente de gastos fijos, alertas presupuestarias, proyectos y avance financiero, adjudicación atómica de cotizaciones, Value Object `Money`, transaccionalidad de auditoría y renderizado tablet:
 
 ```bash
 flutter test
@@ -196,7 +228,7 @@ flutter test
 
 Salida esperada:
 ```text
-00:03 +34: All tests passed!
+00:05 +39: All tests passed!
 ```
 
 ### Ejecutar Análisis Estático
@@ -212,15 +244,17 @@ No issues found!
 
 ## ⚙️ Cómo Ejecutar build_runner
 
-Drift genera código tipado de base de datos (`app_database.g.dart`). Para regenerar este código:
+Drift genera código tipado de base de datos (`app_database.g.dart` y `daos/*.g.dart`). Para regenerar este código:
 
 ```bash
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner build --force-jit --delete-conflicting-outputs
 ```
+
+> **Nota:** Se utiliza `--force-jit` para garantizar compatibilidad con paquetes nativos en Windows.
 
 ---
 
-## 📦 Cómo Generar APK y AAB para Android Tablet
+## 📱 Cómo Generar APK y AAB para Android Tablet
 
 Dado que Nido es una aplicación estrictamente local, la compilación de producción para Android genera un paquete seguro y liviano:
 
@@ -248,7 +282,7 @@ flutter build appbundle --release
 
 ---
 
-## 🔒 Respaldo, Restauración y Seguridad
+## 💾 Respaldo, Restauración y Seguridad
 
 ### 1. Respaldo Autónomo (.zip)
 Nido genera un archivo comprimido portátil con el siguiente contenido:
@@ -256,7 +290,7 @@ Nido genera un archivo comprimido portátil con el siguiente contenido:
 nido_backup_2026-10-10_1830.zip
 ├── nido.sqlite           # Base de datos SQLite íntegra
 ├── backup_meta.json      # Versión del esquema, fecha de exportación y hash de integridad
-└── fotos/                # Copia de las fotos de cotizaciones físicas
+└── cotizaciones_fotos/   # Copia de las fotos de cotizaciones físicas
 ```
 
 ### 2. Restauración Segura
@@ -279,8 +313,8 @@ nido_backup_2026-10-10_1830.zip
   - Saldos dinámicos calculados, transferencias, filtros avanzados, anulación justificada, restauración y vistas Tablet Master-Detail.
 - [x] **Fase 3: Gastos e Ingresos Fijos & Presupuestos**
   - Generación mensual idempotente, vencimientos (`PAGADO`, `VENCIDO`, `VENCE HOY`), acción "Marcar Pagado" vinculada y alertas presupuestarias 80%/100% con copia del mes anterior.
-- [ ] **Fase 4: Proyectos del Hogar & Cotizaciones con Fotos**
-  - Partidas, fotos de presupuestos en sandbox y comparador con resaltado del menor precio.
+- [x] **Fase 4: Proyectos del Hogar & Cotizaciones con Fotos**
+  - Ciclo de proyectos y partidas, fotos en sandbox privado con rutas relativas, comparador de cotizaciones (resaltado más económica), adjudicación ganadora atómica, avance Presupuesto vs Cotizado vs Gastado Real y vinculación de movimientos auditados.
 - [ ] **Fase 5: Dashboard del Hogar & Reportes Visuales**
   - Métricas ejecutivas, gráficos `fl_chart` y exportación a CSV.
 - [ ] **Fase 6: Bitácora de Auditoría, PIN y Respaldo ZIP**
