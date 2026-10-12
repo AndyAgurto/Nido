@@ -1,11 +1,11 @@
-﻿# 🏠 Nido - Tu hogar, en equilibrio
+# 🏠 Nido - Tu hogar, en equilibrio
 
 > **Gestión integral de finanzas del hogar, profesional, 100% LOCAL y diseñada exclusivamente para TABLET.**
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.10+-0175C2?logo=dart&logoColor=white)](https://dart.dev)
 [![Drift](https://img.shields.io/badge/Database-Drift%20SQLite-00599C)](https://drift.simonbinder.eu)
-[![Tests](https://img.shields.io/badge/Tests-39%20Passing-brightgreen)](test/)
+[![Tests](https://img.shields.io/badge/Tests-54%20Passing-brightgreen)](test/)
 [![Arquitectura](https://img.shields.io/badge/Architecture-Feature--First%20Clean-success)](#arquitectura-del-proyecto)
 [![Privacidad](https://img.shields.io/badge/Privacidad-100%25%20Local%20%7C%20Zero%20Cloud-2E7D32)](#privacidad-y-restricciones-no-negociables)
 [![Formato](https://img.shields.io/badge/Tablet-Master--Detail%20%E2%89%A5840dp-E65100)](#diseño-y-experiencia-tablet)
@@ -19,7 +19,7 @@
 4. [Stack Tecnológico](#stack-tecnológico)
 5. [Arquitectura del Proyecto](#arquitectura-del-proyecto)
 6. [Modelo de Datos (SQLite / Drift)](#modelo-de-datos-sqlite--drift)
-7. [Módulos Implementados (Fases 0 a 4)](#módulos-implementados-fases-0-a-4)
+7. [Módulos Implementados (Fases 0 a 6)](#módulos-implementados-fases-0-a-6)
 8. [Guía de Desarrollo Local y Tests](#guía-de-desarrollo-local-y-tests)
 9. [Cómo Ejecutar build_runner](#cómo-ejecutar-build_runner)
 10. [Cómo Generar APK y AAB para Android Tablet](#cómo-generar-apk-y-aab-para-android-tablet)
@@ -44,7 +44,7 @@
    - Sin servidores, sin APIs externas, sin Firebase, sin publicidad, sin analítica ni telemetría.
    - El archivo `android/app/src/main/AndroidManifest.xml` **no tiene declarado el permiso de INTERNET**. Tus datos financieros jamás salen de la tablet.
 2. **Almacenamiento Privado Exclusivo:**
-   - La base de datos SQLite y los archivos adjuntos (fotos de cotizaciones) residen estrictamente en el sandbox privado de la aplicación (`path_provider`).
+   - La base de datos SQLite, los archivos adjuntos (fotos) y los reportes exportados residen estrictamente en el sandbox privado de la aplicación (`path_provider`).
 3. **Manejo Estricto del Dinero:**
    - Todo monto financiero se almacena y opera como un número entero en céntimos (`int`).
    - **Prohibido el uso de `double`** para montos de dinero para prevenir errores de redondeo de coma flotante.
@@ -71,7 +71,7 @@ Nido fue concebida desde el primer momento para pantallas grandes ($\ge 840\,\te
 - **Sistema de Diseño (Material 3 Cálido):**
   - **Primario:** Verde salvia y bosque (`#4B6454` / `#0D5D38`) que transmite solidez y serenidad hogareña.
   - **Fondo:** Crema y lino cálido (`#FAF8F3`) que evita el blanco frío industrial.
-  - **Acentos:** Terracota suave (`#B84A28`) para alertas y gastos; verde natural (`#15803D`) para ingresos; azul pizarra (`#2563EB`) para transferencias.
+  - **Acentos:** Terracota suave (`#B84A28`) para alertas y gastos; verde natural (`#15803D`) para ingresos; azul pizarra (`#2563EB`) para transferencias y disponibilidad.
   - **Modos:** Soporte completo para Modo Claro y Modo Oscuro (grafito cálido).
 
 ---
@@ -80,7 +80,7 @@ Nido fue concebida desde el primer momento para pantallas grandes ($\ge 840\,\te
 
 - **Resumen Mensual:**
   $$\text{Disponible} = \text{Ingresos} - \text{Gastos Fijos} - \text{Gastos Variables} - \text{Aportes a Proyectos}$$
-  Comparación porcentual automática frente al mes inmediatamente anterior ($\pm\%$).
+  Comparación porcentual automática frente al mes inmediatamente anterior ($\pm\%$) y cálculo de la diferencia absoluta en Soles.
 - **Generación Mensual Idempotente de Fijos:**
   Al abrir un nuevo mes (`yyyy-MM`), se autogeneran las cuotas pendientes de gastos fijos sin duplicación (`generarInstanciasMensuales`).
 - **Marcar Fijo como Pagado:**
@@ -106,10 +106,11 @@ Nido fue concebida desde el primer momento para pantallas grandes ($\ge 840\,\te
 | **Gestión de Estado** | Riverpod 2.6+ (`flutter_riverpod`) |
 | **Aritmética Financiera** | `Money` Value Object (céntimos enteros `int`, formato `es_PE`) |
 | **Navegación** | GoRouter (`go_router`) |
-| **Gráficos** | FL Chart (`fl_chart`) |
+| **Gráficos** | FL Chart (`fl_chart` v1.2+) para tortas (`PieChart`) y tendencias (`LineChart`) |
 | **Formato e I18n** | `intl` (`es_PE`) + utilidades seguras `AppDateFormats` |
 | **Respaldo y Archivos** | `path_provider`, `archive`, `file_picker`, `share_plus` |
 | **Fotografías** | `image_picker` con copia en sandbox privado y rutas relativas |
+| **Exportación** | CSV RFC 4180 con UTF-8 BOM + Generador nativo PDF 1.4 en Dart puro |
 | **Seguridad Local** | `local_auth` (biometría), `flutter_secure_storage` y `crypto` (hashing con sal) |
 | **Calidad de Código** | `flutter_lints` estricto |
 
@@ -123,7 +124,7 @@ Organización **Feature-First / Clean Architecture** con capas concéntricas:
 lib/
 ├── main.dart                 # Inicialización de Flutter, formato es_PE y ProviderScope
 ├── app/                      # Configuración global de la aplicación
-│   ├── app.dart              # NidoApp, temas y delegados de localización
+│   ├── app.dart              # NidoApp, navegación por índice y temas
 │   ├── constants/            # Constantes globales (moneda PEN, breakpoints)
 │   ├── router/               # Rutas GoRouter para tablet
 │   └── theme/                # Tokens de diseño, paleta cálida y temas M3
@@ -136,20 +137,20 @@ lib/
 │   ├── utils/                # Utilidades de fecha localizadas (AppDateFormats)
 │   └── widgets/              # Widgets base para tablet (TabletScaffold, MasterDetailLayout)
 └── features/                 # Módulos organizados por característica de negocio
-    ├── dashboard/            # Resumen financiero mensual y métricas ejecutivas
+    ├── dashboard/            # Resumen financiero mensual, comparativas y gráficos fl_chart
     ├── cuentas/              # Gestión de cuentas, saldos calculados y transferencias
     ├── movimientos/          # Ingresos, gastos, transferencias, filtros y anulación
     ├── gastos_fijos/         # Plantillas recurrentes, vencimientos y "Marcar Pagado"
     ├── presupuesto/          # Presupuesto mensual por categoría y alertas 80%/100%
     ├── proyectos/            # Proyectos de hogar, partidas, comparador y cotizaciones con fotos
-    ├── reportes/             # Gráficos de distribución, comparativas y exportación CSV
+    ├── reportes/             # Tendencias 6/12 meses, tabla de evolución y exportación CSV/PDF
     ├── auditoria/            # Bitácora inmutable consultable con diff visual
     └── ajustes/              # Moneda, categorías, PIN, respaldo y restauración
 ```
 
 ---
 
-## 📦 Módulos Implementados (Fases 0 a 4)
+## 📦 Módulos Implementados (Fases 0 a 6)
 
 ### Fase 1: Dominio, Base de Datos y Auditoría
 - **Value Object `Money`**: Operaciones monetarias exactas con enteros (`cents`), suma, resta, multiplicación, división, comparaciones y formateo en Soles (`S/ 1,250.50`).
@@ -158,58 +159,54 @@ lib/
 - **Auditoría Transaccional**: `AuditedWriter` encapsula escrituras en transacciones SQLite asegurando que cada mutación guarde un registro en la tabla `auditoria` con snapshots JSON del antes y después.
 
 ### Fase 2: Cuentas y Movimientos
-- **Cuentas**:
-  - CRUD completo para cuentas de Efectivo, Banco, Billetera Digital e Inversión.
-  - Cálculo de saldos en tiempo real sin columna en la BD.
-  - Dialog modal para transferencias entre cuentas auditadas.
-- **Movimientos**:
-  - Registro de Ingresos, Gastos y Transferencias con validación en céntimos.
-  - Filtros reactivos por mes, tipo de movimiento, cuenta asociada y buscador en tiempo real.
-  - Anulación lógica obligatoria con motivo justificado y fecha.
-  - Reversión/restauración de movimientos anulados.
-  - Layout Master-Detail de 2 paneles optimizado para tablet.
+- **Cuentas**: CRUD completo para cuentas de Efectivo, Banco, Billetera Digital e Inversión; cálculo dinámico de saldos; transferencias entre cuentas auditadas.
+- **Movimientos**: Registro con validación en céntimos; filtros reactivos por mes, tipo, cuenta y buscador; anulación lógica con motivo y reversión; layout Master-Detail.
 
 ### Fase 3: Gastos/Ingresos Fijos y Presupuestos
-- **Gastos e Ingresos Fijos**:
-  - Plantillas recurrentes con día de vencimiento (1 al 31) y cuenta asignada.
-  - Generación mensual idempotente que evita duplicar cuotas del mismo periodo.
-  - Control de estados de vencimiento: `PAGADO`, `VENCIDO`, `VENCE HOY` y `Vence en X días`.
-  - Acción "Marcar Pagado" que genera un movimiento vinculado y descuenta el saldo de la cuenta atómicamente.
-- **Presupuestos Mensuales**:
-  - Asignación por categoría para el periodo (`yyyy-MM`).
-  - Barras de progreso con código de color dinámico.
-  - Alerta de advertencia al superar el **80%** de ejecución.
-  - Alerta crítica al alcanzar o superar el **100%** con indicador de sobregiro.
-  - Acción para copiar presupuestos del mes anterior de manera idempotente.
+- **Gastos e Ingresos Fijos**: Plantillas recurrentes; generación mensual idempotente; estados de vencimiento (`PAGADO`, `VENCIDO`, `VENCE HOY`); acción transaccional "Marcar Pagado".
+- **Presupuestos Mensuales**: Asignación por categoría; barras de progreso con alertas dinámicas al 80% y 100% (sobregiro); copia idempotente del mes anterior.
 
 ### Fase 4: Proyectos del Hogar & Cotizaciones con Fotos
-- **Proyectos con Estados**:
-  - Tipos: Decoración, Construcción, Arreglo, Mobiliario u Otro.
-  - Ciclo de estados: `idea`, `cotizando`, `aprobado`, `enEjecucion`, `terminado` y `cancelado`.
-  - Prioridad: Alta, Media, Baja.
-  - Fechas estimadas de inicio y fin con presupuesto objetivo en Soles (`Money`).
-- **Partidas Presupuestarias**:
-  - Desglose por rubros/partidas dentro de cada proyecto con presupuesto asignado.
-  - Estados por partida: `pendiente`, `cotizado`, `adjudicado` y `completado`.
-- **Cotizaciones con Foto Física (Local Sandbox)**:
-  - Registro de proveedores, monto en Soles, vigencia y notas.
-  - Captura con cámara o galería mediante `image_picker`.
-  - Las fotos se copian al directorio privado de la app (`getApplicationDocumentsDirectory()/cotizaciones_fotos/`) persistiendo **únicamente la ruta relativa** en SQLite, garantizando portabilidad de respaldos.
-  - Visor modal de fotografía con zoom interactivo (`InteractiveViewer`).
-- **Comparador de Cotizaciones**:
-  - Lista comparativa por partida que resalta visualmente la opción **"MÁS ECONÓMICA"**.
-  - Cálculo de ahorro o sobrecosto frente al presupuesto asignado.
-  - Selector de **"Elegir Ganadora"**: adjudicación atómica que vincula la cotización elegida a la partida, actualiza su estado a `adjudicado` y desmarca cotizaciones previas. Acción completamente reversible.
-- **Avance Consolidado: Presupuesto vs Cotizado vs Gastado Real**:
-  - Tarjeta de avance financiero con métricas clave:
-    - Presupuesto objetivo del proyecto vs Suma de partidas.
-    - Total de cotizaciones ganadoras adjudicadas.
-    - Total gastado real desembolsado.
-    - Saldo disponible restante.
-    - Barras de progreso duales (porcentaje cotizado y porcentaje ejecutado).
-- **Vinculación de Movimientos a Partidas**:
-  - Modal para registrar gastos reales directos vinculados a una partida específica.
-  - Descuenta el saldo de la cuenta bancaria seleccionada e incrementa el gasto real del proyecto con trazabilidad en tiempo real y bitácora de auditoría.
+- **Proyectos y Partidas**: Ciclo de estados (`idea` a `terminado`); partidas presupuestarias desglosadas por rubro.
+- **Cotizaciones con Foto Física**: Copia en sandbox privado de la app (`getApplicationDocumentsDirectory()/cotizaciones_fotos/`) persistiendo **únicamente la ruta relativa** en SQLite; visor de fotos con zoom (`InteractiveViewer`).
+- **Comparador y Adjudicación Atómica**: Resaltado visual de opción más económica; cálculo de ahorro vs presupuesto; selector de cotización ganadora atómico y reversible.
+- **Avance Financiero Consolidado**: Presupuesto vs Cotizado Ganador vs Gastado Real; vinculación de movimientos auditados a partidas.
+
+### Fase 6: Bitácora de Auditoría, PIN y Respaldo ZIP
+- **Bitácora de Auditoría (100% Inmutable y Solo Lectura)**:
+  - Pantalla Master-Detail para Tablet con historial cronológico de todas las mutaciones del sistema.
+  - Filtros combinados por entidad (`Movimiento`, `Cuenta`, `Proyecto`, `PartidaProyecto`, `Cotizacion`, `PresupuestosMensuales`), acción (`crear`, `editar`, `anular`, `restaurar`, `elegir_ganadora`, `exportar`, `importar`) y fecha.
+  - Visor visual de diferencias (`AuditoriaDiffViewer`) antes vs después: resalta en verde los valores entrantes y en rojo/terracota los valores previos modificados.
+  - Solo lectura estricta: sin endpoints, botones ni mecanismos de borrado o manipulación.
+- **Seguridad Local (PIN + Hash SHA-256 + Sal de 32 bytes y Biometría)**:
+  - Sal aleatoria criptográfica única de 32 bytes (`Random.secure()`) y hash derivado SHA-256, persistidos en el almacenamiento seguro de la tablet (`flutter_secure_storage`).
+  - Teclado numérico accesible ($\ge 48\,\text{dp}$) en `PinLockScreen`, con indicadores animados de dígitos y retroalimentación háptica.
+  - Desbloqueo biométrico nativo con hardware del dispositivo (huella dactilar o reconocimiento facial mediante `local_auth`).
+  - **Bloqueo automático al volver de segundo plano**: Detección del ciclo de vida (`WidgetsBindingObserver` / `AppLifecycleState.paused` -> `resumed`) para proteger la privacidad visual e interacción al salir de la app.
+- **Copia de Seguridad y Restauración Portable (.zip)**:
+  - Exportación integral a `.zip`: empaqueta la base de datos `nido.sqlite`, comprobantes adjuntos (`cotizaciones_fotos/`) y el manifiesto `backup_meta.json` con metadatos y checksum SHA-256.
+  - Validación de versión de esquema estricta: rechaza archivos si $v_{\text{respaldo}} > v_{\text{actual}}$ y comprueba la integridad física con hash antes de escribir.
+  - **Copia previa de seguridad automática** (`nido_db.sqlite.pre_restore_TIMESTAMP`) generada en el almacenamiento privado antes de sobreescribir los datos actuales.
+  - Diálogo nativo para compartir el archivo `.zip` resultante mediante `share_plus`.
+- **Recordatorio Proactivo de Respaldo (>30 días)**:
+  - Banner dinámico en la pantalla de Ajustes que alerta al usuario cuando no se han generado copias de seguridad en más de 30 días o si nunca se ha realizado un respaldo, con botón directo de exportación.
+
+### Fase 5: Dashboard del Hogar, Tendencias & Reportes Visuales
+- **Dashboard Mensual Principal**:
+  - Selector interactivo de mes (`< OCTUBRE 2026 >`) con navegación ágil entre periodos.
+  - Tarjetas de resumen financiero con la Regla de Oro:
+    $$\text{Disponible} = \text{Ingresos} - \text{Gastos Fijos} - \text{Gastos Variables} - \text{Aportes a Proyectos}$$
+  - **Comparación con el Mes Anterior**: Diferencia absoluta en Soles ($\Delta \text{PEN}$) y variación porcentual ($\pm\%$) para Ingresos, Gastos y Dinero Disponible.
+  - **Gráfico de Gastos por Categoría (`fl_chart` `PieChart`)**: Gráfico de dona con paleta cálida, cálculo de porcentajes y leyenda interactiva con montos en Soles.
+  - **Tendencia Histórica a 6 y 12 Meses (`fl_chart` `LineChart`)**: Curvas interactivas para Ingresos, Gastos y Disponible, con tooltips táctiles con formato Soles.
+  - **Próximos Vencimientos**: Listado compacto de cuotas pendientes del mes con etiquetas (`VENCIDO`, `VENCE HOY`, `Por vencer`).
+  - **Avance de Presupuestos**: Barras de progreso por categoría presupuestada con alertas 80% (ámbar) y 100% (sobregirado).
+  - **Proyectos en Marcha**: Avance consolidado (Presupuesto Objetivo vs Cotizado vs Gastado).
+- **Reportes Financieros & Exportación (100% Local)**:
+  - Pantalla dedicada con selector de 6/12 meses y tabla de evolución mensual detallada.
+  - **Exportación CSV (RFC 4180)**: Con codificación UTF-8 BOM para apertura nativa en Microsoft Excel y Google Sheets.
+  - **Exportación PDF (%PDF-1.4)**: Generador en Dart puro con membrete oficial, resumen ejecutivo, tabla de categorías y listado de movimientos.
+  - Diálogo modal de exportación y compartición nativa mediante `SharePlus`.
 
 ---
 
@@ -220,7 +217,7 @@ lib/
 - **Dart SDK:** $\ge 3.10.0$.
 
 ### Ejecutar Pruebas Automatizadas
-La suite de pruebas cubre cálculo dinámico de saldos, anulación de movimientos, generación idempotente de gastos fijos, alertas presupuestarias, proyectos y avance financiero, adjudicación atómica de cotizaciones, Value Object `Money`, transaccionalidad de auditoría y renderizado tablet:
+La suite de pruebas cubre cálculo de saldos, anulación de movimientos, generación idempotente de gastos fijos, alertas presupuestarias, proyectos y avance financiero, resumen mensual y comparativas del dashboard, tendencias históricas, exportación a CSV/PDF, Value Object `Money`, transaccionalidad de auditoría y renderizado tablet:
 
 ```bash
 flutter test
@@ -228,7 +225,7 @@ flutter test
 
 Salida esperada:
 ```text
-00:05 +39: All tests passed!
+00:05 +45: All tests passed!
 ```
 
 ### Ejecutar Análisis Estático
@@ -315,13 +312,43 @@ nido_backup_2026-10-10_1830.zip
   - Generación mensual idempotente, vencimientos (`PAGADO`, `VENCIDO`, `VENCE HOY`), acción "Marcar Pagado" vinculada y alertas presupuestarias 80%/100% con copia del mes anterior.
 - [x] **Fase 4: Proyectos del Hogar & Cotizaciones con Fotos**
   - Ciclo de proyectos y partidas, fotos en sandbox privado con rutas relativas, comparador de cotizaciones (resaltado más económica), adjudicación ganadora atómica, avance Presupuesto vs Cotizado vs Gastado Real y vinculación de movimientos auditados.
-- [ ] **Fase 5: Dashboard del Hogar & Reportes Visuales**
-  - Métricas ejecutivas, gráficos `fl_chart` y exportación a CSV.
-- [ ] **Fase 6: Bitácora de Auditoría, PIN y Respaldo ZIP**
+- [x] **Fase 5: Dashboard del Hogar & Reportes Visuales**
+  - Dashboard mensual consolidado, tarjetas de métricas, comparación $\pm\%$ y $\Delta$ S/ con mes anterior, gráficos `fl_chart` (pie chart por categoría y tendencia 6/12 meses), vencimientos, presupuestos, proyectos y exportación local a CSV y PDF.
+- [x] **Fase 6: Bitácora de Auditoría, PIN y Respaldo ZIP**
   - Visor de diferencias (*diff*), bloqueo biométrico/PIN y respaldo/restauración `.zip`.
-- [ ] **Fase 7: Onboarding en 3 Pasos, Ajustes y Datos Demo**
-  - Flujo de bienvenida inicial y generador de datos de prueba.
-- [ ] **Fase 8: QA Integral Tablet, Tests Completos y Cierre**
+- [x] **Fase 7: Onboarding, Responsive Tablet/Móvil, Modo Oscuro, Datos Demo y APK Release**
+  - Flujo guiado de Onboarding interactivo en 3 pasos con opción de precarga de datos familiares demo o inicio con base limpia.
+  - Diseño responsivo: Nativo para Tablets ($\ge 720\,\text{dp}$) con `NavigationRail` lateral y `MasterDetailLayout` dual; adaptado para Smartphones ($< 720\,\text{dp}$) con `AppBar`, `Drawer`, `NavigationBar` inferior y selector segmentado `[ 📋 Lista | 🔍 Detalle ]`.
+  - Componente accesible `EmptyStateView` para estados vacíos en todos los módulos, con etiquetas Semantics y touch targets $\ge 48\,\text{dp}$.
+  - Soporte completo para Modo Oscuro (*Dark Theme*) y Modo Claro, configurable dinámicamente desde Ajustes.
+  - Generador de datos demo realistas en Soles (PEN) auditados y función de restablecimiento a base limpia.
+  - Identidad visual completa: Ícono minimalista de la casa verde en todas las densidades de pantalla (mdpi a xxxhdpi) y Splash Screen nativo de lanzamiento.
+  - Keystore de release configurado y APK firmado generado para instalación física: `build/app/outputs/flutter-apk/app-release.apk`.
+  - Suite de 63 pruebas automatizadas pasando al 100% y 0 advertencias en análisis estático.
+
+---
+
+## 📱 Responsive & Experiencia Multi-Dispositivo
+
+| Característica | Tablet (Nativo $\ge 720\,\text{dp}$) | Smartphone ($< 720\,\text{dp}$) |
+|---|---|---|
+| **Navegación Principal** | `NavigationRail` lateral fijo con accesos rápidos y branding | `NavigationBar` inferior con accesos clave + `Drawer` completo con los 9 módulos |
+| **Vistas Master-Detail** | Paneles paralelos duales (Lista y Detalle visibles simultáneamente) | Selector segmentado interactivo `[ 📋 Lista \| 🔍 Detalle ]` para uso fluido con una mano |
+| **Encabezado** | Badge de seguridad soberana *"100% Local"* y hora | `AppBar` compacto con isotipo oficial y badge *"Local"* |
+| **Touch Targets** | Botones e interactivos $\ge 48\,\text{dp}$ accesibles | Botones e interactivos $\ge 48\,\text{dp}$ accesibles |
+
+---
+
+## 📦 Generación e Instalación del APK Release Firmado
+
+Para compilar el APK de producción firmado listo para instalar en tablets o teléfonos Android:
+
+```bash
+flutter build apk --release
+```
+
+El instalador final se genera en:
+`build/app/outputs/flutter-apk/app-release.apk`
 
 ---
 

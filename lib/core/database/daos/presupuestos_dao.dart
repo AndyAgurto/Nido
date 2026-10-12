@@ -35,14 +35,27 @@ class PresupuestosDao extends DatabaseAccessor<AppDatabase>
   }) {
     return writer.write<void>(
       action: () async {
-        await into(presupuestosMensuales).insertOnConflictUpdate(
-          PresupuestosMensualesCompanion.insert(
-            periodo: periodo,
-            categoriaId: categoriaId,
-            montoCent: montoCent,
-            actualizadoEn: Value(DateTime.now()),
-          ),
-        );
+        final existente = await (select(presupuestosMensuales)
+              ..where((t) => t.periodo.equals(periodo) & t.categoriaId.equals(categoriaId)))
+            .getSingleOrNull();
+
+        if (existente != null) {
+          await (update(presupuestosMensuales)..where((t) => t.id.equals(existente.id))).write(
+            PresupuestosMensualesCompanion(
+              montoCent: Value(montoCent),
+              actualizadoEn: Value(DateTime.now()),
+            ),
+          );
+        } else {
+          await into(presupuestosMensuales).insert(
+            PresupuestosMensualesCompanion.insert(
+              periodo: periodo,
+              categoriaId: categoriaId,
+              montoCent: montoCent,
+              actualizadoEn: Value(DateTime.now()),
+            ),
+          );
+        }
       },
       auditBuilder: (_) => AuditEntry(
         entidad: 'PresupuestosMensuales',

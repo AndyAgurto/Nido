@@ -46,6 +46,7 @@ class AppColors {
 
   // Colores semánticos financieros
   static const Color income = Color(0xFF15803D);
+  static const Color success = Color(0xFF15803D);
   static const Color expense = Color(0xFFB84A28);
   static const Color transfer = Color(0xFF2D628D);
   static const Color warning = Color(0xFFB45309);

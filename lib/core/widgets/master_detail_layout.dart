@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../app/constants/app_constants.dart';
 
-/// Layout adaptable de dos paneles (Maestro - Detalle) optimizado para Tablet.
-/// Si el ancho disponible es >= 840dp se muestran ambos paneles lado a lado.
-/// Si es menor, se muestra el panel seleccionado con transición responsiva.
-class MasterDetailLayout extends StatelessWidget {
+/// Layout adaptable de dos paneles (Maestro - Detalle).
+/// - En Tablet (>= 840dp): Muestra ambos paneles en paralelo con división vertical.
+/// - En Móvil (< 840dp): Muestra el panel maestro con selector segmentado para alternar a detalle.
+class MasterDetailLayout extends StatefulWidget {
   const MasterDetailLayout({
     super.key,
     required this.master,
@@ -30,32 +30,71 @@ class MasterDetailLayout extends StatelessWidget {
   final Widget? emptyDetailPlaceholder;
 
   @override
+  State<MasterDetailLayout> createState() => _MasterDetailLayoutState();
+}
+
+class _MasterDetailLayoutState extends State<MasterDetailLayout> {
+  int _compactViewIndex = 0; // 0 = Lista / Maestro, 1 = Detalle
+
+  @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isDualPane = constraints.maxWidth >= breakpoint;
+        final isDualPane = constraints.maxWidth >= widget.breakpoint;
 
         if (isDualPane) {
           return Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(
-                width: masterWidth,
-                child: master,
+                width: widget.masterWidth,
+                child: widget.master,
               ),
               const VerticalDivider(width: 1),
               Expanded(
-                child: detail ??
-                    emptyDetailPlaceholder ??
+                child: widget.detail ??
+                    widget.emptyDetailPlaceholder ??
                     _DefaultEmptyDetailPlaceholder(),
               ),
             ],
           );
         }
 
-        // Modo pantalla angosta / teléfono o split reducido:
-        // Si hay detalle se muestra el detalle, si no, el maestro.
-        return detail ?? master;
+        // Modo responsivo para móvil / pantalla angosta (< 840dp)
+        final effectiveDetail = widget.detail ??
+            widget.emptyDetailPlaceholder ??
+            _DefaultEmptyDetailPlaceholder();
+
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: SegmentedButton<int>(
+                segments: const [
+                  ButtonSegment<int>(
+                    value: 0,
+                    icon: Icon(Icons.list_alt_rounded, size: 18),
+                    label: Text('Lista'),
+                  ),
+                  ButtonSegment<int>(
+                    value: 1,
+                    icon: Icon(Icons.info_outline_rounded, size: 18),
+                    label: Text('Detalle'),
+                  ),
+                ],
+                selected: {_compactViewIndex},
+                onSelectionChanged: (newSet) {
+                  setState(() {
+                    _compactViewIndex = newSet.first;
+                  });
+                },
+              ),
+            ),
+            Expanded(
+              child: _compactViewIndex == 0 ? widget.master : effectiveDetail,
+            ),
+          ],
+        );
       },
     );
   }

@@ -1,24 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'constants/app_constants.dart';
 import 'theme/app_theme.dart';
+import 'theme/theme_provider.dart';
+import '../core/security/seguridad_providers.dart';
 import '../core/widgets/tablet_scaffold.dart';
+import '../features/ajustes/presentation/ajustes_page.dart';
+import '../features/auditoria/presentation/auditoria_page.dart';
 import '../features/cuentas/presentation/cuentas_page.dart';
-import '../features/movimientos/presentation/movimientos_page.dart';
+import '../features/dashboard/presentation/dashboard_page.dart';
 import '../features/gastos_fijos/presentation/gastos_fijos_page.dart';
+import '../features/movimientos/presentation/movimientos_page.dart';
+import '../features/onboarding/presentation/onboarding_page.dart';
+import '../features/onboarding/presentation/onboarding_providers.dart';
 import '../features/presupuesto/presentation/presupuesto_page.dart';
 import '../features/proyectos/presentation/proyectos_page.dart';
+import '../features/reportes/presentation/reportes_page.dart';
+import '../features/seguridad/presentation/pin_lock_screen.dart';
 
-/// Widget principal de Nido.
-class NidoApp extends StatefulWidget {
+/// Widget principal de Nido con soporte para Onboarding, Bloqueo de PIN y Modo Oscuro.
+class NidoApp extends ConsumerStatefulWidget {
   const NidoApp({super.key});
 
   @override
-  State<NidoApp> createState() => _NidoAppState();
+  ConsumerState<NidoApp> createState() => _NidoAppState();
 }
 
-class _NidoAppState extends State<NidoApp> {
-  int _currentNavIndex = 0; // Inicia por defecto en Cuentas (Fase 2)
+class _NidoAppState extends ConsumerState<NidoApp> with WidgetsBindingObserver {
+  int _currentNavIndex = 0; // Inicia por defecto en Dashboard
+  bool _fueASegundoPlano = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    // Al arrancar la aplicación, si tiene PIN configurado, bloqueamos por seguridad
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final tienePin = await ref.read(tienePinConfiguradoProvider.future);
+      if (tienePin && mounted) {
+        ref.read(estaBloqueadoProvider.notifier).state = true;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
+      _fueASegundoPlano = true;
+    } else if (state == AppLifecycleState.resumed && _fueASegundoPlano) {
+      _fueASegundoPlano = false;
+      final tienePin = ref.read(tienePinConfiguradoProvider).value ?? false;
+      if (tienePin) {
+        ref.read(estaBloqueadoProvider.notifier).state = true;
+      }
+    }
+  }
 
   static const List<String> _sectionTitles = [
     'Dashboard',
@@ -34,6 +78,8 @@ class _NidoAppState extends State<NidoApp> {
 
   Widget _buildBody() {
     switch (_currentNavIndex) {
+      case 0:
+        return const DashboardPage();
       case 1:
         return const CuentasPage();
       case 2:
@@ -44,6 +90,12 @@ class _NidoAppState extends State<NidoApp> {
         return const PresupuestoPage();
       case 5:
         return const ProyectosPage();
+      case 6:
+        return const ReportesPage();
+      case 7:
+        return const AuditoriaPage();
+      case 8:
+        return const AjustesPage();
       default:
         return _BaseTabletContent(
           title: _sectionTitles[_currentNavIndex],
@@ -52,14 +104,45 @@ class _NidoAppState extends State<NidoApp> {
     }
   }
 
+  Widget _buildHome(bool estaBloqueado, bool onboardingCompletado) {
+    if (!onboardingCompletado) {
+      return OnboardingPage(
+        onCompletado: () {
+          ref.invalidate(onboardingCompletadoProvider);
+        },
+      );
+    }
+
+    if (estaBloqueado) {
+      return const PinLockScreen();
+    }
+
+    return TabletScaffold(
+      selectedIndex: _currentNavIndex,
+      onDestinationSelected: (index) {
+        setState(() {
+          _currentNavIndex = index;
+        });
+      },
+      body: _buildBody(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final estaBloqueado = ref.watch(estaBloqueadoProvider);
+    final onboardingAsync = ref.watch(onboardingCompletadoProvider);
+    final themeMode = ref.watch(themeModeProvider);
+
+    // Si aún está resolviendo el futuro o es true, asumimos completado para evitar flash
+    final onboardingCompletado = onboardingAsync.value ?? true;
+
     return MaterialApp(
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -70,15 +153,7 @@ class _NidoAppState extends State<NidoApp> {
         Locale('es'),
       ],
       locale: const Locale('es', 'PE'),
-      home: TabletScaffold(
-        selectedIndex: _currentNavIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _currentNavIndex = index;
-          });
-        },
-        body: _buildBody(),
-      ),
+      home: _buildHome(estaBloqueado, onboardingCompletado),
     );
   }
 }
@@ -107,79 +182,11 @@ class _BaseTabletContent extends StatelessWidget {
         ),
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 20),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.wifi_off_rounded,
-                  size: 16,
-                  color: theme.colorScheme.onPrimaryContainer,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'Modo 100% Local',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Card(
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.foundation_rounded,
-                  size: 64,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  AppConstants.appName,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  AppConstants.appSlogan,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    'Sección "$title": Módulo preparado para próximas fases',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+      body: Center(
+        child: Text(
+          'Sección "$title"',
+          style: theme.textTheme.bodyLarge,
         ),
       ),
     );

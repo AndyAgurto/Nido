@@ -14,7 +14,6 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     final db = AppDatabase(NativeDatabase.memory());
-    addTearDown(db.close);
 
     await tester.pumpWidget(
       ProviderScope(
@@ -27,5 +26,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Nido'), findsWidgets);
+
+    // Desmontar el árbol y drenar microtareas de Drift
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await db.close();
   });
 }

@@ -1,3 +1,4 @@
+import '../../../shared/widgets/empty_state_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' as drift;
@@ -67,21 +68,13 @@ class CuentasPage extends ConsumerWidget {
       body: cuentasAsync.when(
         data: (cuentas) {
           if (cuentas.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.account_balance_wallet_outlined, size: 64, color: theme.colorScheme.outline),
-                  const SizedBox(height: 16),
-                  Text('No hay cuentas registradas', style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 12),
-                  FilledButton.icon(
-                    onPressed: () => _mostrarDialogoCrearEditar(context, ref),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Crear Primera Cuenta'),
-                  ),
-                ],
-              ),
+            return EmptyStateView(
+              icon: Icons.account_balance_wallet_outlined,
+              title: 'No hay cuentas registradas',
+              description: 'Crea tu primera cuenta bancaria, billetera digital o caja de efectivo para gestionar tu dinero.',
+              actionLabel: 'Crear Primera Cuenta',
+              actionIcon: Icons.add,
+              onAction: () => _mostrarDialogoCrearEditar(context, ref),
             );
           }
 
