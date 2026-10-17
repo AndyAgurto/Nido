@@ -38,39 +38,68 @@ class _GastosFijosPageState extends ConsumerState<GastosFijosPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final periodo = ref.watch(periodoGastosFijosProvider);
 
+    final isMobile = MediaQuery.of(context).size.width < 720;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gastos e Ingresos Fijos'),
-        actions: [
-          FilledButton.icon(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => const NuevaPlantillaDialog(),
-              );
-            },
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Nueva Plantilla'),
-          ),
-          const SizedBox(width: 16),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(
-              icon: Icon(Icons.calendar_month_rounded),
-              text: 'Control Mensual y Vencimientos',
+      appBar: isMobile
+          ? null
+          : AppBar(
+              title: const Text('Gastos Fijos'),
+              actions: [
+                FilledButton.icon(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => const NuevaPlantillaDialog(),
+                    );
+                  },
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Nueva Plantilla'),
+                ),
+                const SizedBox(width: 16),
+              ],
+              bottom: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                tabs: const [
+                  Tab(icon: Icon(Icons.calendar_month_rounded), text: 'Vencimientos del Mes'),
+                  Tab(icon: Icon(Icons.format_list_bulleted_rounded), text: 'Plantillas Fijas'),
+                ],
+              ),
             ),
-            Tab(
-              icon: Icon(Icons.format_list_bulleted_rounded),
-              text: 'Plantillas Fijas',
+      floatingActionButton: isMobile
+          ? FloatingActionButton.small(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => const NuevaPlantillaDialog(),
+                );
+              },
+              tooltip: 'Nueva Plantilla',
+              child: const Icon(Icons.add_rounded),
+            )
+          : null,
+      body: Column(
+        children: [
+          if (isMobile)
+            Container(
+              color: theme.colorScheme.surface,
+              child: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                tabs: const [
+                  Tab(icon: Icon(Icons.calendar_month_rounded), text: 'Vencimientos del Mes'),
+                  Tab(icon: Icon(Icons.format_list_bulleted_rounded), text: 'Plantillas Fijas'),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
-      body: TabBarView(
+          Expanded(
+            child: TabBarView(
         controller: _tabController,
         children: [
           _ControlMensualTab(
@@ -81,6 +110,9 @@ class _GastosFijosPageState extends ConsumerState<GastosFijosPage>
           const _PlantillasTab(),
         ],
       ),
+    ),
+    ],
+    ),
     );
   }
 
@@ -145,45 +177,52 @@ class _ControlMensualTab extends ConsumerWidget {
 
     return Column(
       children: [
-        // Selector de mes y acción de generar
+        // Selector de mes y acción de generar adaptativo
         Container(
           color: theme.colorScheme.surfaceContainerLowest,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.chevron_left_rounded),
-                onPressed: () {
-                  final anterior = DateTime(anio, mes - 1);
-                  ref.read(periodoGastosFijosProvider.notifier).state =
-                      DateFormat('yyyy-MM').format(anterior);
-                },
-                tooltip: 'Mes anterior',
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHigh,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  monthName,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isMobile = constraints.maxWidth < 650;
+
+              final monthNav = Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left_rounded),
+                    onPressed: () {
+                      final anterior = DateTime(anio, mes - 1);
+                      ref.read(periodoGastosFijosProvider.notifier).state =
+                          DateFormat('yyyy-MM').format(anterior);
+                    },
+                    tooltip: 'Mes anterior',
                   ),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.chevron_right_rounded),
-                onPressed: () {
-                  final siguiente = DateTime(anio, mes + 1);
-                  ref.read(periodoGastosFijosProvider.notifier).state =
-                      DateFormat('yyyy-MM').format(siguiente);
-                },
-                tooltip: 'Mes siguiente',
-              ),
-              const Spacer(),
-              FilledButton.tonalIcon(
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      monthName,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_right_rounded),
+                    onPressed: () {
+                      final siguiente = DateTime(anio, mes + 1);
+                      ref.read(periodoGastosFijosProvider.notifier).state =
+                          DateFormat('yyyy-MM').format(siguiente);
+                    },
+                    tooltip: 'Mes siguiente',
+                  ),
+                ],
+              );
+
+              final generateBtn = FilledButton.tonalIcon(
                 onPressed: isGenerating ? null : onGenerar,
                 icon: isGenerating
                     ? const SizedBox(
@@ -191,10 +230,28 @@ class _ControlMensualTab extends ConsumerWidget {
                         height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(Icons.auto_mode_rounded),
-                label: const Text('Generar Instancias del Mes'),
-              ),
-            ],
+                    : const Icon(Icons.auto_mode_rounded, size: 18),
+                label: const Text('Generar Cuotas del Mes'),
+              );
+
+              if (isMobile) {
+                return Column(
+                  children: [
+                    monthNav,
+                    const SizedBox(height: 8),
+                    SizedBox(width: double.infinity, child: generateBtn),
+                  ],
+                );
+              }
+
+              return Row(
+                children: [
+                  monthNav,
+                  const Spacer(),
+                  generateBtn,
+                ],
+              );
+            },
           ),
         ),
         const Divider(height: 1),
@@ -256,47 +313,106 @@ class _ControlMensualTab extends ConsumerWidget {
               }
 
               return ListView(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 16,
+                  bottom: MediaQuery.paddingOf(context).bottom + 88,
+                ),
                 children: [
-                  // Tarjetas de métricas
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _MetricaFijosCard(
-                          titulo: 'Total Esperado',
-                          monto: Money.fromCents(totalEsperado),
-                          color: AppColors.primary,
-                          icon: Icons.calendar_month_rounded,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _MetricaFijosCard(
-                          titulo: 'Pagado',
-                          monto: Money.fromCents(totalPagado),
-                          color: AppColors.income,
-                          icon: Icons.check_circle_outline_rounded,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _MetricaFijosCard(
-                          titulo: 'Pendiente',
-                          monto: Money.fromCents(totalPendiente),
-                          color: AppColors.warning,
-                          icon: Icons.hourglass_top_rounded,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _MetricaFijosCard(
-                          titulo: 'Vencido',
-                          monto: Money.fromCents(totalVencido),
-                          color: AppColors.expense,
-                          icon: Icons.warning_amber_rounded,
-                        ),
-                      ),
-                    ],
+                  // Tarjetas de métricas responsivas (Cuadrícula 2x2 en móvil para máxima legibilidad)
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isCompact = constraints.maxWidth < 650;
+                      if (isCompact) {
+                        return Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _MetricaFijosCard(
+                                    titulo: 'Total Esperado',
+                                    monto: Money.fromCents(totalEsperado),
+                                    color: AppColors.primary,
+                                    icon: Icons.calendar_month_rounded,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _MetricaFijosCard(
+                                    titulo: 'Pagado',
+                                    monto: Money.fromCents(totalPagado),
+                                    color: AppColors.income,
+                                    icon: Icons.check_circle_outline_rounded,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _MetricaFijosCard(
+                                    titulo: 'Pendiente',
+                                    monto: Money.fromCents(totalPendiente),
+                                    color: AppColors.warning,
+                                    icon: Icons.hourglass_top_rounded,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _MetricaFijosCard(
+                                    titulo: 'Vencido',
+                                    monto: Money.fromCents(totalVencido),
+                                    color: AppColors.expense,
+                                    icon: Icons.warning_amber_rounded,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      }
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: _MetricaFijosCard(
+                              titulo: 'Total Esperado',
+                              monto: Money.fromCents(totalEsperado),
+                              color: AppColors.primary,
+                              icon: Icons.calendar_month_rounded,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _MetricaFijosCard(
+                              titulo: 'Pagado',
+                              monto: Money.fromCents(totalPagado),
+                              color: AppColors.income,
+                              icon: Icons.check_circle_outline_rounded,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _MetricaFijosCard(
+                              titulo: 'Pendiente',
+                              monto: Money.fromCents(totalPendiente),
+                              color: AppColors.warning,
+                              icon: Icons.hourglass_top_rounded,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _MetricaFijosCard(
+                              titulo: 'Vencido',
+                              monto: Money.fromCents(totalVencido),
+                              color: AppColors.expense,
+                              icon: Icons.warning_amber_rounded,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 20),
 
@@ -345,33 +461,43 @@ class _MetricaFijosCard extends StatelessWidget {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: theme.colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.6)),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         child: Row(
           children: [
             CircleAvatar(
+              radius: 18,
               backgroundColor: color.withValues(alpha: 0.12),
-              child: Icon(icon, color: color, size: 20),
+              child: Icon(icon, color: color, size: 18),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     titulo,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  Text(
-                    monto.format(),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: color,
+                  const SizedBox(height: 2),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      monto.format(),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
                     ),
                   ),
                 ],
@@ -505,71 +631,95 @@ class _PagoItemCard extends StatelessWidget {
     }
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          backgroundColor: isPagado
-              ? AppColors.income.withValues(alpha: 0.12)
-              : (diasDiferencia < 0
-                  ? AppColors.expense.withValues(alpha: 0.12)
-                  : theme.colorScheme.surfaceContainerHighest),
-          child: Icon(
-            isPagado
-                ? Icons.check_circle_outline_rounded
-                : (diasDiferencia < 0
-                    ? Icons.warning_amber_rounded
-                    : Icons.event_repeat_rounded),
-            color: isPagado
-                ? AppColors.income
-                : (diasDiferencia < 0 ? AppColors.expense : AppColors.primary),
-          ),
-        ),
-        title: Row(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.6)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Text(
-                plantilla?.nombre ?? 'Gasto Fijo #${pago.gastoFijoId}',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+            // Fila 1: Ícono + Nombre (Ancho completo, nunca vertical) + Badge
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: isPagado
+                      ? AppColors.income.withValues(alpha: 0.12)
+                      : (diasDiferencia < 0
+                          ? AppColors.expense.withValues(alpha: 0.12)
+                          : theme.colorScheme.surfaceContainerHighest),
+                  child: Icon(
+                    isPagado
+                        ? Icons.check_circle_outline_rounded
+                        : (diasDiferencia < 0
+                            ? Icons.warning_amber_rounded
+                            : Icons.event_repeat_rounded),
+                    size: 20,
+                    color: isPagado
+                        ? AppColors.income
+                        : (diasDiferencia < 0 ? AppColors.expense : AppColors.primary),
+                  ),
                 ),
-              ),
-            ),
-            badgeVencimiento,
-          ],
-        ),
-        subtitle: Text(
-          'Vencimiento: ${DateFormat('dd/MM/yyyy').format(pago.fechaVencimiento)}',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              monto.format(),
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: isPagado ? AppColors.income : AppColors.expense,
-              ),
-            ),
-            const SizedBox(width: 16),
-            if (!isPagado && plantilla != null)
-              FilledButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => MarcarPagadoDialog(
-                      pago: pago,
-                      plantilla: plantilla!,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    plantilla?.nombre ?? 'Gasto Fijo #${pago.gastoFijoId}',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
-                  );
-                },
-                child: const Text('Marcar Pagado'),
-              )
-            else if (isPagado)
-              const Icon(Icons.check_circle_rounded, color: AppColors.income),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                badgeVencimiento,
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Divider(height: 1),
+            const SizedBox(height: 12),
+            // Fila 2: Fecha a la izquierda, Monto y Acción a la derecha
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Vence: ${DateFormat('dd/MM/yyyy').format(pago.fechaVencimiento)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                Text(
+                  monto.format(),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isPagado ? AppColors.income : AppColors.expense,
+                  ),
+                ),
+                if (!isPagado && plantilla != null) ...[
+                  const SizedBox(width: 12),
+                  FilledButton.tonal(
+                    style: FilledButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => MarcarPagadoDialog(
+                          pago: pago,
+                          plantilla: plantilla!,
+                        ),
+                      );
+                    },
+                    child: const Text('Marcar Pagado'),
+                  ),
+                ],
+              ],
+            ),
           ],
         ),
       ),
@@ -588,7 +738,12 @@ class _PlantillasTab extends ConsumerWidget {
     final ingresosFijosAsync = ref.watch(plantillasIngresosFijosStreamProvider);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 16,
+        bottom: MediaQuery.paddingOf(context).bottom + 88,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -601,7 +756,7 @@ class _PlantillasTab extends ConsumerWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              FilledButton.tonalIcon(
+IconButton.filledTonal(
                 onPressed: () {
                   showDialog(
                     context: context,
@@ -609,8 +764,8 @@ class _PlantillasTab extends ConsumerWidget {
                         const NuevaPlantillaDialog(esGasto: true),
                   );
                 },
-                icon: const Icon(Icons.add),
-                label: const Text('Nuevo Gasto Fijo'),
+                icon: const Icon(Icons.add_rounded),
+                tooltip: 'Nuevo Gasto Fijo',
               ),
             ],
           ),
@@ -660,7 +815,7 @@ class _PlantillasTab extends ConsumerWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              FilledButton.tonalIcon(
+IconButton.filledTonal(
                 onPressed: () {
                   showDialog(
                     context: context,
@@ -668,8 +823,8 @@ class _PlantillasTab extends ConsumerWidget {
                         const NuevaPlantillaDialog(esGasto: false),
                   );
                 },
-                icon: const Icon(Icons.add),
-                label: const Text('Nuevo Ingreso Fijo'),
+                icon: const Icon(Icons.add_rounded),
+                tooltip: 'Nuevo Ingreso Fijo',
               ),
             ],
           ),

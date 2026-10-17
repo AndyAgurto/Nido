@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/database_providers.dart';
 import '../../../../core/database/app_database.dart';
@@ -41,8 +41,9 @@ class ComparadorCotizacionesCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Cabecera de la Partida y Acciones
+            // Cabecera de la Partida y Acciones responsivas
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CircleAvatar(
                   backgroundColor: AppColors.primary.withValues(alpha: 0.12),
@@ -53,7 +54,9 @@ class ComparadorCotizacionesCard extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
                         children: [
                           Text(
                             partida.nombre,
@@ -61,10 +64,10 @@ class ComparadorCotizacionesCard extends ConsumerWidget {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(width: 8),
                           _buildEstadoBadge(partida.estado, theme),
                         ],
                       ),
+                      const SizedBox(height: 2),
                       Text(
                         'Presupuesto Asignado: ${presupuestoMoney.format()}',
                         style: theme.textTheme.bodySmall?.copyWith(
@@ -74,6 +77,13 @@ class ComparadorCotizacionesCard extends ConsumerWidget {
                     ],
                   ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
                 FilledButton.tonalIcon(
                   onPressed: () {
                     showDialog(
@@ -87,7 +97,6 @@ class ComparadorCotizacionesCard extends ConsumerWidget {
                   icon: const Icon(Icons.add_shopping_cart_rounded, size: 18),
                   label: const Text('Registrar Gasto'),
                 ),
-                const SizedBox(width: 8),
                 FilledButton.icon(
                   onPressed: () {
                     showDialog(
@@ -237,40 +246,90 @@ class ComparadorCotizacionesCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _MiniDato(
-              label: 'Presupuestado',
-              valor: avance.presupuesto.format(),
-              color: theme.colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _MiniDato(
-              label: 'Cotizado Ganador',
-              valor: avance.montoCotizado?.format() ?? 'Pendiente',
-              color: avance.montoCotizado != null ? AppColors.primary : theme.colorScheme.outline,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _MiniDato(
-              label: 'Gastado Real',
-              valor: avance.gastadoReal.format(),
-              color: AppColors.expense,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _MiniDato(
-              label: avance.restante.isNegative ? 'Sobregiro' : 'Disponible',
-              valor: avance.restante.format(),
-              color: avance.restante.isNegative ? AppColors.expense : AppColors.income,
-            ),
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompact = constraints.maxWidth < 500;
+          if (isCompact) {
+            return Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _MiniDato(
+                        label: 'Presupuestado',
+                        valor: avance.presupuesto.format(),
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _MiniDato(
+                        label: 'Cotizado Ganador',
+                        valor: avance.montoCotizado?.format() ?? 'Pendiente',
+                        color: avance.montoCotizado != null ? AppColors.primary : theme.colorScheme.outline,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _MiniDato(
+                        label: 'Gastado Real',
+                        valor: avance.gastadoReal.format(),
+                        color: AppColors.expense,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _MiniDato(
+                        label: avance.restante.isNegative ? 'Sobregiro' : 'Disponible',
+                        valor: avance.restante.format(),
+                        color: avance.restante.isNegative ? AppColors.expense : AppColors.income,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          }
+          return Row(
+            children: [
+              Expanded(
+                child: _MiniDato(
+                  label: 'Presupuestado',
+                  valor: avance.presupuesto.format(),
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _MiniDato(
+                  label: 'Cotizado Ganador',
+                  valor: avance.montoCotizado?.format() ?? 'Pendiente',
+                  color: avance.montoCotizado != null ? AppColors.primary : theme.colorScheme.outline,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _MiniDato(
+                  label: 'Gastado Real',
+                  valor: avance.gastadoReal.format(),
+                  color: AppColors.expense,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _MiniDato(
+                  label: avance.restante.isNegative ? 'Sobregiro' : 'Disponible',
+                  valor: avance.restante.format(),
+                  color: avance.restante.isNegative ? AppColors.expense : AppColors.income,
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -391,13 +450,13 @@ class _CotizacionItemTile extends StatelessWidget {
     final esAhorro = diferencia <= 0;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: esElegida
             ? AppColors.primary.withValues(alpha: 0.06)
             : theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: esElegida
               ? AppColors.primary
@@ -407,53 +466,39 @@ class _CotizacionItemTile extends StatelessWidget {
           width: esElegida ? 1.5 : 1.0,
         ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Icono / Foto
-          if (onVerFoto != null) ...[
-            InkWell(
-              onTap: onVerFoto,
-              borderRadius: BorderRadius.circular(8),
-              child: Stack(
-                alignment: Alignment.bottomRight,
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
+          // Fila 1: Icono + Proveedor + Badges + Monto a la derecha
+          Row(
+            children: [
+              if (onVerFoto != null)
+                InkWell(
+                  onTap: onVerFoto,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
                       color: theme.colorScheme.surfaceContainerHigh,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: theme.colorScheme.outlineVariant),
                     ),
-                    child: const Icon(Icons.photo_rounded, size: 22, color: AppColors.primary),
+                    child: const Icon(Icons.photo_rounded, size: 18, color: AppColors.primary),
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.zoom_in, size: 10, color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-          ] else ...[
-            CircleAvatar(
-              radius: 20,
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
-              child: const Icon(Icons.storefront_rounded, size: 20),
-            ),
-            const SizedBox(width: 12),
-          ],
-
-          // Datos del Proveedor y Fechas
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+                )
+              else
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                  child: const Icon(Icons.storefront_rounded, size: 18),
+                ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
                       cotizacion.proveedor,
@@ -461,8 +506,7 @@ class _CotizacionItemTile extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (esElegida) ...[
-                      const SizedBox(width: 8),
+                    if (esElegida)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
@@ -478,9 +522,7 @@ class _CotizacionItemTile extends StatelessWidget {
                           ),
                         ),
                       ),
-                    ],
-                    if (esMenorPrecio) ...[
-                      const SizedBox(width: 6),
+                    if (esMenorPrecio)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
@@ -496,76 +538,72 @@ class _CotizacionItemTile extends StatelessWidget {
                           ),
                         ),
                       ),
-                    ],
                   ],
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    Text(
-                      'Fecha: ${AppDateFormats.formatSimple(cotizacion.fecha)}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.outline,
-                      ),
-                    ),
-                    if (cotizacion.contacto != null && cotizacion.contacto!.isNotEmpty) ...[
-                      const Text(' • '),
-                      Text(
-                        'Tel: ${cotizacion.contacto}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.outline,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Monto y Desvío frente al Presupuesto
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                montoMoney.format(),
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: esElegida ? AppColors.primary : theme.colorScheme.onSurface,
                 ),
               ),
-              Text(
-                esAhorro
-                    ? 'Ahorro: ${Money.fromCents(diferencia.abs()).format()}'
-                    : '+${Money.fromCents(diferencia).format()}',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: esAhorro ? AppColors.income : AppColors.expense,
-                ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    montoMoney.format(),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: esElegida ? AppColors.primary : theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    esAhorro
+                        ? 'Ahorro: ${Money.fromCents(diferencia.abs()).format()}'
+                        : '+${Money.fromCents(diferencia).format()}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: esAhorro ? AppColors.income : AppColors.expense,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(width: 16),
-
-          // Botón de Elección de Ganadora
-          if (esElegida)
-            OutlinedButton(
-              onPressed: onDesmarcar,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.expense,
-                side: BorderSide(color: AppColors.expense.withValues(alpha: 0.5)),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          const SizedBox(height: 8),
+          const Divider(height: 1),
+          const SizedBox(height: 8),
+          // Fila 2: Fecha y Teléfono a la izquierda, Acción a la derecha
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  'Fecha: ${AppDateFormats.formatSimple(cotizacion.fecha)}${cotizacion.contacto != null && cotizacion.contacto!.isNotEmpty ? ' • Tel: ${cotizacion.contacto}' : ''}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.outline,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              child: const Text('Desmarcar'),
-            )
-          else
-            FilledButton.tonal(
-              onPressed: onElegir,
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              ),
-              child: const Text('Elegir Ganadora'),
-            ),
+              const SizedBox(width: 8),
+              if (esElegida)
+                OutlinedButton(
+                  onPressed: onDesmarcar,
+                  style: OutlinedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    foregroundColor: AppColors.expense,
+                    side: BorderSide(color: AppColors.expense.withValues(alpha: 0.5)),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  ),
+                  child: const Text('Desmarcar', style: TextStyle(fontSize: 12)),
+                )
+              else
+                FilledButton.tonal(
+                  onPressed: onElegir,
+                  style: FilledButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  ),
+                  child: const Text('Elegir Ganadora', style: TextStyle(fontSize: 12)),
+                ),
+            ],
+          ),
         ],
       ),
     );

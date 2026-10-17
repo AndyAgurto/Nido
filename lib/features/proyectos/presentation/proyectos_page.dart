@@ -19,93 +19,116 @@ import 'widgets/comparador_cotizaciones_card.dart';
 class ProyectosPage extends ConsumerWidget {
   const ProyectosPage({super.key});
 
+  Future<void> _abrirNuevoProyecto(BuildContext context, WidgetRef ref) async {
+    final nuevoId = await showDialog<int>(
+      context: context,
+      builder: (context) => const NuevoProyectoDialog(),
+    );
+    if (nuevoId != null) {
+      ref.read(proyectosFiltroEstadoProvider.notifier).state = null;
+      ref.read(proyectoSeleccionadoIdProvider.notifier).state = nuevoId;
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final isMobile = MediaQuery.of(context).size.width < 720;
     final proyectosAsync = ref.watch(proyectosStreamProvider);
     final selectedId = ref.watch(proyectoSeleccionadoIdProvider);
     final filtroEstado = ref.watch(proyectosFiltroEstadoProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Proyectos del Hogar'),
-        actions: [
-          FilledButton.icon(
-            onPressed: () async {
-              final nuevoId = await showDialog<int>(
-                context: context,
-                builder: (context) => const NuevoProyectoDialog(),
-              );
-              if (nuevoId != null) {
-                ref.read(proyectosFiltroEstadoProvider.notifier).state = null;
-                ref.read(proyectoSeleccionadoIdProvider.notifier).state = nuevoId;
-              }
-            },
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Nuevo Proyecto'),
-          ),
-          const SizedBox(width: 16),
-        ],
-      ),
-      body: proyectosAsync.when(
-        data: (proyectos) {
-          if (proyectos.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.home_repair_service_outlined,
-                    size: 64,
-                    color: theme.colorScheme.outline,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    filtroEstado != null
-                        ? 'No hay proyectos con estado "$filtroEstado"'
-                        : 'No tienes proyectos del hogar registrados',
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Planifica remodelaciones, muebles, reparaciones y cotizaciones.',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+      appBar: isMobile
+          ? null
+          : AppBar(
+              title: const Text('Proyectos'),
+              actions: [
+                FilledButton.icon(
+                  onPressed: () => _abrirNuevoProyecto(context, ref),
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Nuevo Proyecto'),
+                ),
+                const SizedBox(width: 16),
+              ],
+            ),
+      floatingActionButton: isMobile
+          ? FloatingActionButton.small(
+              onPressed: () => _abrirNuevoProyecto(context, ref),
+              tooltip: 'Nuevo Proyecto',
+              child: const Icon(Icons.add_rounded),
+            )
+          : null,
+      body: Column(
+        children: [
+          // Barra de filtros por estado SIEMPRE visible arriba
+          _FiltrosEstadoBar(filtroActual: filtroEstado),
+          const Divider(height: 1),
+          Expanded(
+            child: proyectosAsync.when(
+              data: (proyectos) {
+                if (proyectos.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.home_repair_service_outlined,
+                            size: 64,
+                            color: theme.colorScheme.outline,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            filtroEstado != null
+                                ? 'No hay proyectos con estado "$filtroEstado"'
+                                : 'No tienes proyectos del hogar registrados',
+                            style: theme.textTheme.titleMedium,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Planifica remodelaciones, muebles, reparaciones y cotizaciones.',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 20),
+                          if (filtroEstado != null) ...[
+                            OutlinedButton.icon(
+                              onPressed: () => ref.read(proyectosFiltroEstadoProvider.notifier).state = null,
+                              icon: const Icon(Icons.filter_alt_off_rounded),
+                              label: const Text('Ver todos los proyectos'),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+                          FilledButton.icon(
+                            onPressed: () => _abrirNuevoProyecto(context, ref),
+                            icon: const Icon(Icons.add),
+                            label: Text(
+                              filtroEstado != null ? 'Crear proyecto en $filtroEstado' : 'Crear Primer Proyecto',
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  FilledButton.tonalIcon(
-                    onPressed: () async {
-                      final nuevoId = await showDialog<int>(
-                        context: context,
-                        builder: (context) => const NuevoProyectoDialog(),
-                      );
-                      if (nuevoId != null) {
-                        ref.read(proyectosFiltroEstadoProvider.notifier).state = null;
-                        ref.read(proyectoSeleccionadoIdProvider.notifier).state = nuevoId;
-                      }
-                    },
-                    icon: const Icon(Icons.add),
-                    label: const Text('Crear Primer Proyecto'),
-                  ),
-                ],
-              ),
-            );
-          }
+                  );
+                }
 
-          final selectedProyecto = selectedId != null
-              ? proyectos.where((p) => p.id == selectedId).firstOrNull ??
-                  proyectos.first
-              : proyectos.first;
+                final selectedProyecto = selectedId != null
+                    ? proyectos.where((p) => p.id == selectedId).firstOrNull ?? proyectos.first
+                    : proyectos.first;
 
-          return MasterDetailLayout(
-            master: Column(
-              children: [
-                _FiltrosEstadoBar(filtroActual: filtroEstado),
-                const Divider(height: 1),
-                Expanded(
-                  child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                return MasterDetailLayout(
+                  master: ListView.separated(
+                    padding: EdgeInsets.only(
+                      left: 16,
+                      right: 16,
+                      top: 12,
+                      bottom: MediaQuery.paddingOf(context).bottom + 88,
+                    ),
                     itemCount: proyectos.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
@@ -120,14 +143,14 @@ class ProyectosPage extends ConsumerWidget {
                       );
                     },
                   ),
-                ),
-              ],
+                  detail: _ProyectoDetallePanel(proyecto: selectedProyecto),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(child: Text('Error al cargar proyectos: $e')),
             ),
-            detail: _ProyectoDetallePanel(proyecto: selectedProyecto),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error al cargar proyectos: $e')),
+          ),
+        ],
       ),
     );
   }
@@ -169,7 +192,7 @@ class _FiltrosEstadoBar extends ConsumerWidget {
             ),
             const SizedBox(width: 8),
             ChoiceChip(
-              label: const Text('En EjecuciÃ³n'),
+              label: const Text('En Ejecución'),
               selected: filtroActual == 'enEjecucion',
               onSelected: (_) => notifier.state = 'enEjecucion',
             ),
@@ -333,7 +356,7 @@ class _ProyectoListItem extends ConsumerWidget {
       case 'enEjecucion':
         bg = AppColors.primary.withValues(alpha: 0.15);
         fg = AppColors.primary;
-        label = 'EN EJECUCIÃ“N';
+        label = 'EN EJECUCIÓN';
         break;
       case 'terminado':
         bg = Colors.green.shade100;
@@ -393,43 +416,63 @@ class _ProyectoDetallePanelState extends ConsumerState<_ProyectoDetallePanel> {
           // Tarjeta de Cabecera del Proyecto
           Card(
             elevation: 1,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.6)),
+            ),
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Fila 1: Título completo y botón editar
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            DynamicScrollText(
-                              p.nombre,
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            if (p.descripcion != null && p.descripcion!.isNotEmpty) ...[
-                              const SizedBox(height: 6),
-                              Text(
-                                p.descripcion!,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ],
+                        child: Text(
+                          p.nombre,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                      // Selector de Estado RÃ¡pido
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(Icons.edit_outlined),
+                        tooltip: 'Editar Proyecto',
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => NuevoProyectoDialog(proyecto: p),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  if (p.descripcion != null && p.descripcion!.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      p.descripcion!,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  // Fila 2: Chips y Selector de estado con Wrap para no desbordar
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      // Selector de Estado en Chip estilizado
                       Container(
-                        height: 40,
+                        height: 36,
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         decoration: BoxDecoration(
                           color: theme.colorScheme.surfaceContainerHigh,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: theme.colorScheme.outlineVariant),
                         ),
                         child: DropdownButtonHideUnderline(
@@ -450,6 +493,8 @@ class _ProyectoDetallePanelState extends ConsumerState<_ProyectoDetallePanel> {
                               }
                               return DropdownButton<String>(
                                 value: normalized,
+                                isDense: true,
+                                style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold),
                                 items: items,
                                 onChanged: (val) {
                                   if (val != null) _cambiarEstado(val);
@@ -459,24 +504,6 @@ class _ProyectoDetallePanelState extends ConsumerState<_ProyectoDetallePanel> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined),
-                        tooltip: 'Editar Proyecto',
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => NuevoProyectoDialog(proyecto: p),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 8,
-                    children: [
                       _buildChip(Icons.category_outlined, p.tipo.toUpperCase(), theme),
                       _buildChip(Icons.flag_outlined, 'Prioridad: ${p.prioridad.toUpperCase()}', theme),
                       if (p.fechaInicioEstimada != null)
@@ -607,7 +634,7 @@ class _ProyectoDetallePanelState extends ConsumerState<_ProyectoDetallePanel> {
                     padding: const EdgeInsets.all(24.0),
                     child: Center(
                       child: Text(
-                        'AÃºn no hay desembolsos registrados para las partidas de este proyecto.',
+                        'Aún no hay desembolsos registrados para las partidas de este proyecto.',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.outline,
                         ),
@@ -689,13 +716,21 @@ class _ProyectoDetallePanelState extends ConsumerState<_ProyectoDetallePanel> {
 
     return Card(
       elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.6)),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // Cabecera: Título y contador de partidas con Wrap (cero colisiones)
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 4,
               children: [
                 Text(
                   'Consolidado Financiero de Avance',
@@ -703,113 +738,189 @@ class _ProyectoDetallePanelState extends ConsumerState<_ProyectoDetallePanel> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Text(
-                  'Partidas Adjudicadas: ${avance.partidasAdjudicadas} de ${avance.totalPartidas}',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Partidas Adjudicadas: ${avance.partidasAdjudicadas} de ${avance.totalPartidas}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            // Barras de Progreso Comparativas
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Cotizado Adjudicado', style: theme.textTheme.labelSmall),
-                          Text('$pctCotizado% del presupuesto', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold)),
-                        ],
+            // Barras de Progreso: en móvil apiladas en columna para evitar colisión de textos
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact = constraints.maxWidth < 600;
+
+                final cotizadoCol = Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(child: Text('Cotizado Adjudicado', style: theme.textTheme.labelSmall, overflow: TextOverflow.ellipsis)),
+                        const SizedBox(width: 8),
+                        Text('$pctCotizado% presup.', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: avance.porcentajeCotizado.clamp(0.0, 1.0),
+                        minHeight: 8,
+                        backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                       ),
-                      const SizedBox(height: 4),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: avance.porcentajeCotizado.clamp(0.0, 1.0),
-                          minHeight: 8,
-                          backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                          valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 24),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Gasto Real Desembolsado', style: theme.textTheme.labelSmall),
-                          Text(
-                            '$pctGastado% ejecutado',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: pctGastado > 100 ? AppColors.expense : null,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: avance.porcentajeGastadoVsPresupuesto.clamp(0.0, 1.0),
-                          minHeight: 8,
-                          backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            pctGastado > 100 ? AppColors.expense : Colors.amber.shade700,
+                    ),
+                  ],
+                );
+
+                final gastadoCol = Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(child: Text('Gasto Real Desembolsado', style: theme.textTheme.labelSmall, overflow: TextOverflow.ellipsis)),
+                        const SizedBox(width: 8),
+                        Text(
+                          '$pctGastado% ejec.',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: pctGastado > 100 ? AppColors.expense : null,
                           ),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: avance.porcentajeGastadoVsPresupuesto.clamp(0.0, 1.0),
+                        minHeight: 8,
+                        backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          pctGastado > 100 ? AppColors.expense : Colors.amber.shade700,
+                        ),
                       ),
+                    ),
+                  ],
+                );
+
+                if (isCompact) {
+                  return Column(
+                    children: [
+                      cotizadoCol,
+                      const SizedBox(height: 12),
+                      gastadoCol,
                     ],
-                  ),
-                ),
-              ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    Expanded(child: cotizadoCol),
+                    const SizedBox(width: 24),
+                    Expanded(child: gastadoCol),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 16),
             const Divider(height: 1),
             const SizedBox(height: 16),
-            // 4 Columnas de MÃ©tricas Clave
-            Row(
-              children: [
-                Expanded(
-                  child: _MiniResumenItem(
-                    label: 'Presupuesto Base',
-                    valor: avance.presupuestoReferencia.format(),
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-                Expanded(
-                  child: _MiniResumenItem(
-                    label: 'Total Cotizado',
-                    valor: avance.totalCotizado.format(),
-                    color: AppColors.primary,
-                  ),
-                ),
-                Expanded(
-                  child: _MiniResumenItem(
-                    label: 'Gastado Real',
-                    valor: avance.gastadoReal.format(),
-                    color: AppColors.expense,
-                  ),
-                ),
-                Expanded(
-                  child: _MiniResumenItem(
-                    label: avance.disponiblePresupuesto.isNegative ? 'Sobregiro' : 'Saldo Disponible',
-                    valor: avance.disponiblePresupuesto.format(),
-                    color: avance.disponiblePresupuesto.isNegative ? AppColors.expense : AppColors.income,
-                  ),
-                ),
-              ],
+            // Métricas: en móvil cuadrícula 2x2 para que los números nunca se superpongan
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact = constraints.maxWidth < 600;
+                if (isCompact) {
+                  return Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _MiniResumenItem(
+                              label: 'Presupuesto Base',
+                              valor: avance.presupuestoReferencia.format(),
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _MiniResumenItem(
+                              label: 'Total Cotizado',
+                              valor: avance.totalCotizado.format(),
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _MiniResumenItem(
+                              label: 'Gastado Real',
+                              valor: avance.gastadoReal.format(),
+                              color: AppColors.expense,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _MiniResumenItem(
+                              label: avance.disponiblePresupuesto.isNegative ? 'Sobregiro' : 'Saldo Disponible',
+                              valor: avance.disponiblePresupuesto.format(),
+                              color: avance.disponiblePresupuesto.isNegative ? AppColors.expense : AppColors.income,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    Expanded(
+                      child: _MiniResumenItem(
+                        label: 'Presupuesto Base',
+                        valor: avance.presupuestoReferencia.format(),
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    Expanded(
+                      child: _MiniResumenItem(
+                        label: 'Total Cotizado',
+                        valor: avance.totalCotizado.format(),
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    Expanded(
+                      child: _MiniResumenItem(
+                        label: 'Gastado Real',
+                        valor: avance.gastadoReal.format(),
+                        color: AppColors.expense,
+                      ),
+                    ),
+                    Expanded(
+                      child: _MiniResumenItem(
+                        label: avance.disponiblePresupuesto.isNegative ? 'Sobregiro' : 'Saldo Disponible',
+                        valor: avance.disponiblePresupuesto.format(),
+                        color: avance.disponiblePresupuesto.isNegative ? AppColors.expense : AppColors.income,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -827,68 +938,86 @@ class _ProyectoDetallePanelState extends ConsumerState<_ProyectoDetallePanel> {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppConstants.cardBorderRadius),
+        borderRadius: BorderRadius.circular(16),
         side: BorderSide(
           color: isExpandida ? AppColors.primary : theme.colorScheme.outlineVariant,
           width: isExpandida ? 1.5 : 1.0,
         ),
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: CircleAvatar(
-          backgroundColor: isExpandida
-              ? AppColors.primary
-              : theme.colorScheme.surfaceContainerHighest,
-          foregroundColor: isExpandida ? Colors.white : theme.colorScheme.onSurface,
-          child: const Icon(Icons.assignment_outlined, size: 20),
-        ),
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(
-                partida.nombre,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            _buildBadgeEstadoPartida(partida.estado),
-          ],
-        ),
-        subtitle: Text('Presupuesto Asignado: ${presupuestoMoney.format()}'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit_outlined, size: 18),
-              tooltip: 'Editar Partida',
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => NuevaPartidaDialog(
-                    proyectoId: widget.proyecto.id,
-                    partida: partida,
-                  ),
-                );
-              },
-            ),
-            IconButton(
-              icon: Icon(
-                isExpandida ? Icons.expand_less_rounded : Icons.expand_more_rounded,
-                color: isExpandida ? AppColors.primary : null,
-              ),
-              tooltip: isExpandida ? 'Cerrar Cotizaciones' : 'Ver y Comparar Cotizaciones',
-              onPressed: () {
-                setState(() {
-                  _partidaExpandidaId = isExpandida ? null : partida.id;
-                });
-              },
-            ),
-          ],
-        ),
+      child: InkWell(
         onTap: () {
           setState(() {
             _partidaExpandidaId = isExpandida ? null : partida.id;
           });
         },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(14.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Fila 1: Ícono + Nombre a todo lo ancho + Botones
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: isExpandida
+                        ? AppColors.primary
+                        : theme.colorScheme.surfaceContainerHighest,
+                    foregroundColor: isExpandida ? Colors.white : theme.colorScheme.onSurface,
+                    child: const Icon(Icons.assignment_outlined, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      partida.nombre,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    tooltip: 'Editar Partida',
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => NuevaPartidaDialog(
+                          proyectoId: widget.proyecto.id,
+                          partida: partida,
+                        ),
+                      );
+                    },
+                  ),
+                  Icon(
+                    isExpandida
+                        ? Icons.keyboard_arrow_up_rounded
+                        : Icons.keyboard_arrow_down_rounded,
+                    color: isExpandida ? AppColors.primary : theme.colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              // Fila 2: Presupuesto y Badge de Estado
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Presupuesto: ${presupuestoMoney.format()}',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  _buildBadgeEstadoPartida(partida.estado),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -938,7 +1067,7 @@ class _ProyectoDetallePanelState extends ConsumerState<_ProyectoDetallePanel> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Estado actualizado a "$nuevoEstado" con auditorÃ­a.'),
+          content: Text('Estado actualizado a "$nuevoEstado" con auditoría.'),
           backgroundColor: AppColors.primary,
         ),
       );

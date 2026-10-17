@@ -46,7 +46,12 @@ class ReportesPage extends ConsumerWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(isMobile ? 12.0 : 24.0),
+        padding: EdgeInsets.only(
+          left: 20.0,
+          right: 20.0,
+          top: 16.0,
+          bottom: MediaQuery.paddingOf(context).bottom + 88,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

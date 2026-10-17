@@ -26,18 +26,22 @@ class PresupuestoPage extends ConsumerWidget {
     final monthName =
         AppDateFormats.formatMesAnio(fechaPeriodo);
 
+    final isMobile = MediaQuery.of(context).size.width < 720;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Presupuesto Mensual'),
-        actions: [
-          FilledButton.tonalIcon(
-            onPressed: () => _copiarMesAnterior(context, ref, periodo),
-            icon: const Icon(Icons.content_copy_rounded),
-            label: const Text('Copiar del Mes Anterior'),
-          ),
-          const SizedBox(width: 16),
-        ],
-      ),
+      appBar: isMobile
+          ? null
+          : AppBar(
+              title: const Text('Presupuesto'),
+              actions: [
+                FilledButton.tonalIcon(
+                  onPressed: () => _copiarMesAnterior(context, ref, periodo),
+                  icon: const Icon(Icons.content_copy_rounded),
+                  label: const Text('Copiar del Mes Anterior'),
+                ),
+                const SizedBox(width: 16),
+              ],
+            ),
       body: Column(
         children: [
           // Selector de Mes Superior
@@ -78,6 +82,14 @@ class PresupuestoPage extends ConsumerWidget {
                   },
                   tooltip: 'Mes siguiente',
                 ),
+                if (isMobile) ...[
+                  const Spacer(),
+                  IconButton.filledTonal(
+                    icon: const Icon(Icons.content_copy_rounded, size: 20),
+                    tooltip: 'Copiar del Mes Anterior',
+                    onPressed: () => _copiarMesAnterior(context, ref, periodo),
+                  ),
+                ],
               ],
             ),
           ),
@@ -104,7 +116,12 @@ class PresupuestoPage extends ConsumerWidget {
                     : 0.0;
 
                 return ListView(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 16,
+                    bottom: MediaQuery.paddingOf(context).bottom + 88,
+                  ),
                   children: [
                     // Banner de Resumen Global
                     _ResumenPresupuestoCard(

@@ -199,6 +199,13 @@ class TabletScaffold extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu_rounded),
+            tooltip: 'Menú principal',
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -220,7 +227,7 @@ class TabletScaffold extends StatelessWidget {
               child: Text(
                 activeDestination.label,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               ),
             ),
           ],
@@ -255,63 +262,13 @@ class TabletScaffold extends StatelessWidget {
         ],
       ),
       drawer: _buildMobileDrawer(context, theme),
-      body: body,
-      floatingActionButton: floatingActionButton,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _getMobileNavBarIndex(),
-        onDestinationSelected: (navIndex) {
-          if (navIndex < 4) {
-            final targetIndices = [0, 1, 2, 4];
-            onDestinationSelected(targetIndices[navIndex]);
-          } else {
-            // El 5to botón "Más" abre el menú Drawer completo
-            Scaffold.of(context).openDrawer();
-          }
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard_rounded),
-            label: 'Dashboard',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: Icon(Icons.account_balance_wallet_rounded),
-            label: 'Cuentas',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.swap_horiz_outlined),
-            selectedIcon: Icon(Icons.swap_horiz_rounded),
-            label: 'Movimientos',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.pie_chart_outline_rounded),
-            selectedIcon: Icon(Icons.pie_chart_rounded),
-            label: 'Presupuesto',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.menu_rounded),
-            selectedIcon: Icon(Icons.menu_open_rounded),
-            label: 'Más...',
-          ),
-        ],
+      body: SafeArea(
+        top: false,
+        bottom: true,
+        child: body,
       ),
+      floatingActionButton: floatingActionButton,
     );
-  }
-
-  int _getMobileNavBarIndex() {
-    switch (selectedIndex) {
-      case 0:
-        return 0; // Dashboard
-      case 1:
-        return 1; // Cuentas
-      case 2:
-        return 2; // Movimientos
-      case 4:
-        return 3; // Presupuesto
-      default:
-        return 4; // "Más" para los otros módulos
-    }
   }
 
   Widget _buildMobileDrawer(BuildContext context, ThemeData theme) {

@@ -189,7 +189,7 @@ void main() {
       expect(find.text('Contenido Tablet'), findsOneWidget);
     });
 
-    testWidgets('En Movil (<720dp) muestra NavigationBar inferior y AppBar con Drawer', (tester) async {
+    testWidgets('En Movil (<720dp) muestra navegacion lateral con Drawer y AppBar', (tester) async {
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -205,7 +205,7 @@ void main() {
       );
 
       expect(find.byType(NavigationRail), findsNothing);
-      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(find.byIcon(Icons.menu_rounded), findsOneWidget);
       expect(find.byType(AppBar), findsOneWidget);
     });
 

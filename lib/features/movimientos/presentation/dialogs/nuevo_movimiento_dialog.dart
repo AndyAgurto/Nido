@@ -80,32 +80,39 @@ class _NuevoMovimientoDialogState
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Selector de tipo (SegmentedButton)
-                SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(
-                      value: 'gasto',
-                      label: Text('Gasto'),
-                      icon: Icon(Icons.arrow_upward_rounded),
+                // Selector de tipo responsive con pills
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTipoButton(
+                        tipo: 'gasto',
+                        label: 'Gasto',
+                        icon: Icons.arrow_upward_rounded,
+                        color: AppColors.expense,
+                        theme: theme,
+                      ),
                     ),
-                    ButtonSegment(
-                      value: 'ingreso',
-                      label: Text('Ingreso'),
-                      icon: Icon(Icons.arrow_downward_rounded),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildTipoButton(
+                        tipo: 'ingreso',
+                        label: 'Ingreso',
+                        icon: Icons.arrow_downward_rounded,
+                        color: AppColors.income,
+                        theme: theme,
+                      ),
                     ),
-                    ButtonSegment(
-                      value: 'transferencia',
-                      label: Text('Transferencia'),
-                      icon: Icon(Icons.swap_horiz_rounded),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildTipoButton(
+                        tipo: 'transferencia',
+                        label: 'Transferir',
+                        icon: Icons.swap_horiz_rounded,
+                        color: AppColors.transfer,
+                        theme: theme,
+                      ),
                     ),
                   ],
-                  selected: {_tipo},
-                  onSelectionChanged: (val) {
-                    setState(() {
-                      _tipo = val.first;
-                      _categoriaId = null;
-                    });
-                  },
                 ),
                 const SizedBox(height: 20),
 
@@ -366,4 +373,55 @@ class _NuevoMovimientoDialogState
       if (mounted) setState(() => _isSaving = false);
     }
   }
+  Widget _buildTipoButton({
+    required String tipo,
+    required String label,
+    required IconData icon,
+    required Color color,
+    required ThemeData theme,
+  }) {
+    final isSelected = _tipo == tipo;
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _tipo = tipo;
+          _categoriaId = null;
+        });
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withValues(alpha: 0.15) : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? color : theme.colorScheme.outlineVariant,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18, color: isSelected ? color : theme.colorScheme.onSurfaceVariant),
+            const SizedBox(width: 6),
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    color: isSelected ? color : theme.colorScheme.onSurfaceVariant,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 }

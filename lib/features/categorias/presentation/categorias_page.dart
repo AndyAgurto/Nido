@@ -28,32 +28,39 @@ class CategoriasPage extends ConsumerWidget {
     final soloActivas = ref.watch(categoriasMostrarSoloActivasProvider);
     final categoriasAsync = ref.watch(categoriasFiltradasStreamProvider);
 
+    final isMobile = MediaQuery.of(context).size.width < 720;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Categorías del Hogar'),
-        actions: [
-          Tooltip(
-            message: soloActivas ? 'Mostrando solo activas' : 'Mostrando todas',
-            child: IconButton(
-              icon: Icon(soloActivas ? Icons.visibility_rounded : Icons.visibility_off_outlined),
-              onPressed: () {
-                ref.read(categoriasMostrarSoloActivasProvider.notifier).state = !soloActivas;
-              },
+      appBar: isMobile
+          ? null
+          : AppBar(
+              title: const Text('Categorías'),
+              actions: [
+                Tooltip(
+                  message: soloActivas ? 'Mostrando solo activas' : 'Mostrando todas',
+                  child: IconButton(
+                    icon: Icon(soloActivas ? Icons.visibility_rounded : Icons.visibility_off_outlined),
+                    onPressed: () {
+                      ref.read(categoriasMostrarSoloActivasProvider.notifier).state = !soloActivas;
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                FilledButton.icon(
+                  onPressed: () => _mostrarDialogoCrearEditar(context, ref, tipoSugerido: tipoActual == 'todos' ? 'gastoVariable' : tipoActual),
+                  icon: const Icon(Icons.add_rounded, size: 20),
+                  label: const Text('Nueva Categoría'),
+                ),
+                const SizedBox(width: 16),
+              ],
             ),
-          ),
-          const SizedBox(width: 8),
-          FilledButton.icon(
-            style: FilledButton.styleFrom(
-              minimumSize: const Size(140, 42),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-            ),
-            onPressed: () => _mostrarDialogoCrearEditar(context, ref, tipoSugerido: tipoActual == 'todos' ? 'gastoVariable' : tipoActual),
-            icon: const Icon(Icons.add_rounded, size: 20),
-            label: const Text('Nueva Categoría'),
-          ),
-          const SizedBox(width: 16),
-        ],
-      ),
+      floatingActionButton: isMobile
+          ? FloatingActionButton.small(
+              onPressed: () => _mostrarDialogoCrearEditar(context, ref, tipoSugerido: tipoActual == 'todos' ? 'gastoVariable' : tipoActual),
+              tooltip: 'Nueva Categoría',
+              child: const Icon(Icons.add_rounded),
+            )
+          : null,
       body: Column(
         children: [
           // Barra de navegación por tipos (Deslizable horizontal para móviles)
@@ -100,7 +107,12 @@ class CategoriasPage extends ConsumerWidget {
                 }
 
                 return ListView.separated(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: MediaQuery.paddingOf(context).bottom + 88,
+            ),
                   itemCount: lista.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../domain/dashboard_resumen.dart';
 
@@ -88,42 +88,84 @@ class _GastosCategoriaPieChartState extends State<GastosCategoriaPieChart> {
                 ),
               ),
             ] else ...[
-              SizedBox(
-                height: 220,
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 5,
-                      child: PieChart(
-                        PieChartData(
-                          pieTouchData: PieTouchData(
-                            touchCallback: (event, pieTouchResponse) {
-                              setState(() {
-                                if (!event.isInterestedForInteractions ||
-                                    pieTouchResponse == null ||
-                                    pieTouchResponse.touchedSection == null) {
-                                  _touchedIndex = -1;
-                                  return;
-                                }
-                                _touchedIndex = pieTouchResponse
-                                    .touchedSection!.touchedSectionIndex;
-                              });
-                            },
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isCompact = constraints.maxWidth < 600;
+
+                  if (isCompact) {
+                    return Column(
+                      children: [
+                        SizedBox(
+                          height: 190,
+                          child: PieChart(
+                            PieChartData(
+                              pieTouchData: PieTouchData(
+                                touchCallback: (event, pieTouchResponse) {
+                                  setState(() {
+                                    if (!event.isInterestedForInteractions ||
+                                        pieTouchResponse == null ||
+                                        pieTouchResponse.touchedSection == null) {
+                                      _touchedIndex = -1;
+                                      return;
+                                    }
+                                    _touchedIndex = pieTouchResponse
+                                        .touchedSection!.touchedSectionIndex;
+                                  });
+                                },
+                              ),
+                              borderData: FlBorderData(show: false),
+                              sectionsSpace: 3,
+                              centerSpaceRadius: 38,
+                              sections: _buildSections(radius: 40, touchedRadius: 48),
+                            ),
                           ),
-                          borderData: FlBorderData(show: false),
-                          sectionsSpace: 3,
-                          centerSpaceRadius: 42,
-                          sections: _buildSections(),
                         ),
-                      ),
+                        const SizedBox(height: 16),
+                        const Divider(height: 1),
+                        const SizedBox(height: 12),
+                        _buildLeyendaCompleta(theme),
+                      ],
+                    );
+                  }
+
+                  return SizedBox(
+                    height: 230,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 5,
+                          child: PieChart(
+                            PieChartData(
+                              pieTouchData: PieTouchData(
+                                touchCallback: (event, pieTouchResponse) {
+                                  setState(() {
+                                    if (!event.isInterestedForInteractions ||
+                                        pieTouchResponse == null ||
+                                        pieTouchResponse.touchedSection == null) {
+                                      _touchedIndex = -1;
+                                      return;
+                                    }
+                                    _touchedIndex = pieTouchResponse
+                                        .touchedSection!.touchedSectionIndex;
+                                  });
+                                },
+                              ),
+                              borderData: FlBorderData(show: false),
+                              sectionsSpace: 3,
+                              centerSpaceRadius: 42,
+                              sections: _buildSections(radius: 46, touchedRadius: 54),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 24),
+                        Expanded(
+                          flex: 5,
+                          child: _buildLeyenda(theme),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      flex: 5,
-                      child: _buildLeyenda(theme),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ],
           ],
@@ -132,19 +174,19 @@ class _GastosCategoriaPieChartState extends State<GastosCategoriaPieChart> {
     );
   }
 
-  List<PieChartSectionData> _buildSections() {
+  List<PieChartSectionData> _buildSections({double radius = 46.0, double touchedRadius = 54.0}) {
     return List.generate(widget.categorias.length, (i) {
       final isTouched = i == _touchedIndex;
       final cat = widget.categorias[i];
       final color = _getColor(i, cat.color);
-      final radius = isTouched ? 54.0 : 46.0;
+      final effectiveRadius = isTouched ? touchedRadius : radius;
       final pct = (cat.porcentaje * 100).toInt();
 
       return PieChartSectionData(
         color: color,
         value: cat.monto.cents.toDouble(),
         title: pct >= 5 ? '$pct%' : '',
-        radius: radius,
+        radius: effectiveRadius,
         titleStyle: TextStyle(
           fontSize: isTouched ? 14.0 : 11.0,
           fontWeight: FontWeight.bold,
@@ -155,6 +197,79 @@ class _GastosCategoriaPieChartState extends State<GastosCategoriaPieChart> {
         ),
       );
     });
+  }
+
+  Widget _buildLeyendaCompleta(ThemeData theme) {
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: widget.categorias.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      itemBuilder: (context, idx) {
+        final cat = widget.categorias[idx];
+        final color = _getColor(idx, cat.color);
+        final isSelected = idx == _touchedIndex;
+        final pct = (cat.porcentaje * 100).toInt();
+
+        return InkWell(
+          onTap: () {
+            setState(() {
+              _touchedIndex = (_touchedIndex == idx) ? -1 : idx;
+            });
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            child: Row(
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                    border: isSelected ? Border.all(color: Colors.white, width: 2) : null,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    cat.nombre,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Text(
+                  cat.monto.format(),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '$pct%',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildLeyenda(ThemeData theme) {

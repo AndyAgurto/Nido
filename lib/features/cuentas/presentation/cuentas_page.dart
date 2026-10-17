@@ -19,6 +19,7 @@ class CuentasPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final isMobile = MediaQuery.of(context).size.width < 720;
     final cuentasAsync = ref.watch(cuentasActivasStreamProvider);
     final selectedId = ref.watch(cuentaSeleccionadaIdProvider);
     final dineroTotalAsync = ref.watch(dineroTotalActualProvider);
@@ -27,46 +28,63 @@ class CuentasPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Cuentas y Bolsillos'),
         actions: [
-          dineroTotalAsync.when(
-            data: (total) => Container(
-              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.primaryContainer,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.savings_outlined, size: 18, color: AppColors.primary),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Dinero Actual: ${total.format()}',
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.onPrimaryContainer,
-                    ),
-                  ),
-                ],
-              ),
+          if (isMobile) ...[
+            IconButton.filledTonal(
+              onPressed: () => _mostrarDialogoTransferir(context, ref),
+              icon: const Icon(Icons.swap_horiz_rounded),
+              tooltip: 'Transferir entre Cuentas',
             ),
-            loading: () => const SizedBox.shrink(),
-            error: (_, _) => const SizedBox.shrink(),
-          ),
-          FilledButton.icon(
-            onPressed: () => _mostrarDialogoTransferir(context, ref),
-            icon: const Icon(Icons.swap_horiz_rounded),
-            label: const Text('Transferir'),
-          ),
-          const SizedBox(width: 8),
-          FilledButton.tonalIcon(
-            onPressed: () => _mostrarDialogoCrearEditar(context, ref),
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Nueva Cuenta'),
-          ),
-          const SizedBox(width: 16),
+            const SizedBox(width: 4),
+            IconButton.filled(
+              onPressed: () => _mostrarDialogoCrearEditar(context, ref),
+              icon: const Icon(Icons.add_rounded),
+              tooltip: 'Nueva Cuenta',
+            ),
+            const SizedBox(width: 8),
+          ] else ...[
+            dineroTotalAsync.when(
+              data: (total) => Container(
+                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryContainer,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.savings_outlined, size: 18, color: AppColors.primary),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Dinero Actual: ${total.format()}',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.onPrimaryContainer,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              loading: () => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
+            ),
+            FilledButton.icon(
+              onPressed: () => _mostrarDialogoTransferir(context, ref),
+              icon: const Icon(Icons.swap_horiz_rounded),
+              label: const Text('Transferir'),
+            ),
+            const SizedBox(width: 8),
+            FilledButton.tonalIcon(
+              onPressed: () => _mostrarDialogoCrearEditar(context, ref),
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('Nueva Cuenta'),
+            ),
+            const SizedBox(width: 16),
+          ],
         ],
       ),
+// En móvil el botón "+" ya se ubica limpiamente en la cabecera superior, evitando obstruir la lista
+      floatingActionButton: null,
       body: cuentasAsync.when(
         data: (cuentas) {
           if (cuentas.isEmpty) {
@@ -85,20 +103,65 @@ class CuentasPage extends ConsumerWidget {
               : cuentas.first;
 
           return MasterDetailLayout(
-            master: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: cuentas.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final cuenta = cuentas[index];
-                final isSelected = cuenta.id == cuentaActiva.id;
-
-                return _CuentaListItem(
-                  cuenta: cuenta,
-                  isSelected: isSelected,
-                  onTap: () => ref.read(cuentaSeleccionadaIdProvider.notifier).state = cuenta.id,
-                );
-              },
+            master: ListView(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 12,
+                bottom: MediaQuery.paddingOf(context).bottom + 88,
+              ),
+              children: [
+                if (isMobile)
+                  dineroTotalAsync.when(
+                    data: (total) => Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryContainer,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.savings_outlined, color: AppColors.primary, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Dinero Total',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            total.format(),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, _) => const SizedBox.shrink(),
+                  ),
+                ...cuentas.map((cuenta) {
+                  final isSelected = cuenta.id == cuentaActiva.id;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: _CuentaListItem(
+                      cuenta: cuenta,
+                      isSelected: isSelected,
+                      onTap: () => ref.read(cuentaSeleccionadaIdProvider.notifier).state = cuenta.id,
+                    ),
+                  );
+                }),
+              ],
             ),
             detail: _CuentaDetallePanel(cuenta: cuentaActiva),
           );
@@ -201,93 +264,106 @@ class _CuentaDetallePanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final isMobile = MediaQuery.of(context).size.width < 720;
     final saldoAsync = ref.watch(saldoCuentaProvider(cuenta.id));
     final movsDao = ref.watch(movimientosDaoProvider);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isMobile ? 12 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Cabecera de la cuenta
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Row(
+              padding: EdgeInsets.all(isMobile ? 16 : 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const CircleAvatar(
-                    radius: 32,
-                    backgroundColor: AppColors.primaryContainer,
-                    child: Icon(Icons.account_balance_wallet_rounded, size: 36, color: AppColors.primary),
+                  Row(
+                    children: [
+                      const CircleAvatar(
+                        radius: 24,
+                        backgroundColor: AppColors.primaryContainer,
+                        child: Icon(Icons.account_balance_wallet_rounded, size: 26, color: AppColors.primary),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(cuenta.nombre, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                            Text(
+                              'Tipo: ${cuenta.tipo.toUpperCase()} • Inicial: ${Money.fromCents(cuenta.saldoInicialCent).format()}',
+                              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(cuenta.nombre, style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
-                        Text('Tipo: ${cuenta.tipo.toUpperCase()} • Saldo Inicial: ${Money.fromCents(cuenta.saldoInicialCent).format()}'),
-                      ],
-                    ),
-                  ),
+                  const SizedBox(height: 14),
+                  const Divider(height: 1),
+                  const SizedBox(height: 12),
                   saldoAsync.when(
-                    data: (saldo) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    data: (saldo) => Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('SALDO CALCULADO', style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.outline)),
-                        Text(
-                          saldo.format(),
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: saldo.isNegative ? AppColors.expense : AppColors.primary,
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            saldo.format(),
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: saldo.isNegative ? AppColors.expense : AppColors.primary,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    loading: () => const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)),
-                    error: (_, _) => const Text('Error'),
+                    loading: () => const LinearProgressIndicator(minHeight: 4),
+                    error: (_, _) => const Text('Error al calcular saldo'),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          const SizedBox(height: 16),
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 8,
             children: [
-              Expanded(
-                child: Text('Movimientos Recientes', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-              ),
-              TextButton.icon(
+              Text('Movimientos Recientes', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              FilledButton.tonalIcon(
                 onPressed: () {
                   showDialog(
                     context: context,
                     builder: (context) => _DialogoCrearEditarCuenta(cuenta: cuenta),
                   );
                 },
-                icon: const Icon(Icons.edit_outlined),
+                icon: const Icon(Icons.edit_outlined, size: 16),
                 label: const Text('Editar Cuenta'),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          // Lista de movimientos filtrada para esta cuenta
+          // Lista de movimientos de esta cuenta
           StreamBuilder<List<Movimiento>>(
             stream: movsDao.watchMovimientos(cuentaId: cuenta.id),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()));
+                return const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()));
               }
               final movs = snapshot.data ?? [];
               if (movs.isEmpty) {
-                return const Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Center(child: Text('Sin movimientos registrados en esta cuenta.')),
-                  ),
+                return const Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Center(child: Text('No hay movimientos registrados en esta cuenta.')),
                 );
               }
-
               return ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -295,10 +371,11 @@ class _CuentaDetallePanel extends ConsumerWidget {
                 separatorBuilder: (_, _) => const Divider(height: 1),
                 itemBuilder: (context, index) {
                   final m = movs[index];
-                  final isIngreso = m.tipo == 'ingreso' || (m.tipo == 'transferencia' && m.cuentaDestinoId == cuenta.id);
+                  final isIngreso = m.tipo == 'ingreso';
                   final monto = Money.fromCents(m.montoCent);
 
                   return ListTile(
+                    contentPadding: EdgeInsets.zero,
                     leading: Icon(
                       m.tipo == 'transferencia'
                           ? Icons.swap_horiz_rounded

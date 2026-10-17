@@ -135,65 +135,57 @@ class _NuevoProyectoDialogState extends ConsumerState<NuevoProyectoDialog> {
                           },
                         ),
                         const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: StreamBuilder<List<Categoria>>(
-                                stream: ref.watch(categoriasDaoProvider).watchCategorias(tipo: 'proyecto'),
-                                builder: (context, snapshot) {
-                                  final catsProy = snapshot.data ?? [];
-                                  final Map<String, String> mergedTipos = Map.from(_tiposMap);
-                                  for (final c in catsProy) {
-                                    mergedTipos[c.nombre.toLowerCase().replaceAll(' ', '_')] = c.nombre;
-                                  }
+                        StreamBuilder<List<Categoria>>(
+                          stream: ref.watch(categoriasDaoProvider).watchCategorias(tipo: 'proyecto'),
+                          builder: (context, snapshot) {
+                            final catsProy = snapshot.data ?? [];
+                            final Map<String, String> mergedTipos = Map.from(_tiposMap);
+                            for (final c in catsProy) {
+                              mergedTipos[c.nombre.toLowerCase().replaceAll(' ', '_')] = c.nombre;
+                            }
 
-                                  final effectiveTipo = mergedTipos.containsKey(_tipo)
-                                      ? _tipo
-                                      : (mergedTipos.keys.firstOrNull ?? 'decoracion');
+                            final effectiveTipo = mergedTipos.containsKey(_tipo)
+                                ? _tipo
+                                : (mergedTipos.keys.firstOrNull ?? 'decoracion');
 
-                                  return DropdownButtonFormField<String>(
-                                    initialValue: effectiveTipo,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Tipo de Proyecto',
-                                      prefixIcon: Icon(Icons.category_outlined),
+                            return DropdownButtonFormField<String>(
+                              initialValue: effectiveTipo,
+                              decoration: const InputDecoration(
+                                labelText: 'Tipo de Proyecto',
+                                prefixIcon: Icon(Icons.category_outlined),
+                              ),
+                              items: mergedTipos.entries
+                                  .map(
+                                    (e) => DropdownMenuItem(
+                                      value: e.key,
+                                      child: Text(e.value),
                                     ),
-                                    items: mergedTipos.entries
-                                        .map(
-                                          (e) => DropdownMenuItem(
-                                            value: e.key,
-                                            child: Text(e.value),
-                                          ),
-                                        )
-                                        .toList(),
-                                    onChanged: (v) {
-                                      if (v != null) setState(() => _tipo = v);
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: DropdownButtonFormField<String>(
-                                initialValue: _estado,
-                                decoration: const InputDecoration(
-                                  labelText: 'Estado Inicial',
-                                  prefixIcon: Icon(Icons.flag_outlined),
+                                  )
+                                  .toList(),
+                              onChanged: (v) {
+                                if (v != null) setState(() => _tipo = v);
+                              },
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          initialValue: _estado,
+                          decoration: const InputDecoration(
+                            labelText: 'Estado Inicial',
+                            prefixIcon: Icon(Icons.flag_outlined),
+                          ),
+                          items: _estadosMap.entries
+                              .map(
+                                (e) => DropdownMenuItem(
+                                  value: e.key,
+                                  child: Text(e.value),
                                 ),
-                                items: _estadosMap.entries
-                                    .map(
-                                      (e) => DropdownMenuItem(
-                                        value: e.key,
-                                        child: Text(e.value),
-                                      ),
-                                    )
-                                    .toList(),
-                                onChanged: (v) {
-                                  if (v != null) setState(() => _estado = v);
-                                },
-                              ),
-                            ),
-                          ],
+                              )
+                              .toList(),
+                          onChanged: (v) {
+                            if (v != null) setState(() => _estado = v);
+                          },
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
@@ -228,34 +220,23 @@ class _NuevoProyectoDialogState extends ConsumerState<NuevoProyectoDialog> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        SegmentedButton<String>(
-                          segments: const [
-                            ButtonSegment(
-                              value: 'baja',
-                              label: Text('Baja'),
-                              icon: Icon(Icons.low_priority_rounded),
-                            ),
-                            ButtonSegment(
-                              value: 'media',
-                              label: Text('Media'),
-                              icon: Icon(Icons.density_medium_rounded),
-                            ),
-                            ButtonSegment(
-                              value: 'alta',
-                              label: Text('Alta'),
-                              icon: Icon(Icons.priority_high_rounded),
-                            ),
-                          ],
-                          selected: {_prioridad},
-                          onSelectionChanged: (set) {
-                            setState(() => _prioridad = set.first);
-                          },
-                        ),
-                        const SizedBox(height: 16),
                         Row(
                           children: [
                             Expanded(
-                              child: InkWell(
+                              child: _buildPrioridadPill('baja', 'Baja', Icons.keyboard_double_arrow_down_rounded, theme),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildPrioridadPill('media', 'Media', Icons.remove_rounded, theme),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildPrioridadPill('alta', 'Alta', Icons.keyboard_double_arrow_up_rounded, theme),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        InkWell(
                                 onTap: _seleccionarFechaInicio,
                                 borderRadius: BorderRadius.circular(10),
                                 child: InputDecorator(
@@ -270,10 +251,8 @@ class _NuevoProyectoDialogState extends ConsumerState<NuevoProyectoDialog> {
                                   ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: InkWell(
+                              const SizedBox(height: 16),
+                              InkWell(
                                 onTap: _seleccionarFechaFin,
                                 borderRadius: BorderRadius.circular(10),
                                 child: InputDecorator(
@@ -288,9 +267,6 @@ class _NuevoProyectoDialogState extends ConsumerState<NuevoProyectoDialog> {
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _descripcionCtrl,
@@ -357,6 +333,47 @@ class _NuevoProyectoDialogState extends ConsumerState<NuevoProyectoDialog> {
     if (picked != null) {
       setState(() => _fechaFin = picked);
     }
+  }
+
+  Widget _buildPrioridadPill(String valor, String label, IconData icon, ThemeData theme) {
+    final isSelected = _prioridad == valor;
+    final color = valor == 'alta'
+        ? AppColors.expense
+        : (valor == 'media' ? const Color(0xFFEAB308) : Colors.blue);
+
+    return InkWell(
+      onTap: () => setState(() => _prioridad = valor),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withValues(alpha: 0.15) : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? color : theme.colorScheme.outlineVariant,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: isSelected ? color : theme.colorScheme.onSurfaceVariant),
+            const SizedBox(width: 4),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: isSelected ? color : theme.colorScheme.onSurfaceVariant,
+                  fontSize: 12.5,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _guardar() async {

@@ -58,7 +58,12 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
         title: const Text('Ajustes del Sistema'),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(isMobile ? 12.0 : 24.0),
+        padding: EdgeInsets.only(
+          left: 16.0,
+          right: 16.0,
+          top: 16.0,
+          bottom: MediaQuery.paddingOf(context).bottom + 88,
+        ),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 960),
@@ -434,7 +439,7 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.warning.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(16),
@@ -443,60 +448,61 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
           width: 1.5,
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.warning.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.warning_amber_rounded,
-              color: AppColors.warning,
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.warning_amber_rounded,
+                  color: AppColors.warning,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
                   'Recordatorio de Respaldo (>30 días)',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.warning,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '$mensajeDias En Nido tus datos no viajan a ninguna nube. Te recomendamos exportar un archivo .zip para prevenir pérdidas ante eventualidades con tu tablet.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '$mensajeDias En Nido tus datos no viajan a ninguna nube. Te recomendamos exportar un archivo .zip para prevenir pérdidas ante eventualidades con tu dispositivo.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface,
             ),
           ),
-          const SizedBox(width: 16),
-          FilledButton.icon(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.warning,
-              foregroundColor: Colors.black87,
-              minimumSize: const Size(140, 48), // Touch target >= 48dp
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.warning,
+                foregroundColor: Colors.black87,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+              onPressed: _estaExportando ? null : _exportarRespaldoZip,
+              icon: _estaExportando
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black87),
+                    )
+                  : const Icon(Icons.download_rounded),
+              label: const Text('Respaldar Ahora (.zip)'),
             ),
-            onPressed: _estaExportando ? null : _exportarRespaldoZip,
-            icon: _estaExportando
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black87),
-                  )
-                : const Icon(Icons.download_rounded),
-            label: const Text('Respaldar Ahora'),
           ),
         ],
       ),

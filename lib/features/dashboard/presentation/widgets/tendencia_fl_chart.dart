@@ -1,4 +1,4 @@
-﻿import 'dart:math';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -29,26 +29,25 @@ class TendenciaFlChart extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Cabecera con título, leyenda y selector 6/12 meses
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // Cabecera con título, leyenda y selector 6/12 meses adaptativo
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      const Icon(Icons.show_chart_rounded, size: 20),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          'Tendencia Histórica',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.show_chart_rounded, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Tendencia Histórica',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
                 SegmentedButton<int>(
                   segments: const [
@@ -70,21 +69,21 @@ class TendenciaFlChart extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
 
-            // Leyenda de colores
-            Row(
+            // Leyenda de colores con Wrap responsivo
+            Wrap(
+              spacing: 16,
+              runSpacing: 6,
               children: [
                 _buildIndicador(
                   color: AppColors.income,
                   label: 'Ingresos',
                   theme: theme,
                 ),
-                const SizedBox(width: 16),
                 _buildIndicador(
                   color: AppColors.expense,
                   label: 'Gastos',
                   theme: theme,
                 ),
-                const SizedBox(width: 16),
                 _buildIndicador(
                   color: const Color(0xFF2563EB),
                   label: 'Disponible / Ahorro',

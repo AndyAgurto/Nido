@@ -25,23 +25,39 @@ class MovimientosPage extends ConsumerWidget {
     final cuentasMap = ref.watch(cuentasMapProvider).value ?? {};
     final categoriasMap = ref.watch(categoriasMapProvider).value ?? {};
 
+    final isMobile = MediaQuery.of(context).size.width < 720;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Movimientos Financieros'),
-        actions: [
-          FilledButton.icon(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => const NuevoMovimientoDialog(),
-              );
-            },
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Nuevo Movimiento'),
-          ),
-          const SizedBox(width: 16),
-        ],
-      ),
+      appBar: isMobile
+          ? null
+          : AppBar(
+              title: const Text('Movimientos'),
+              actions: [
+                FilledButton.icon(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => const NuevoMovimientoDialog(),
+                    );
+                  },
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Nuevo Movimiento'),
+                ),
+                const SizedBox(width: 16),
+              ],
+            ),
+      floatingActionButton: isMobile
+          ? FloatingActionButton.small(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => const NuevoMovimientoDialog(),
+                );
+              },
+              tooltip: 'Nuevo Movimiento',
+              child: const Icon(Icons.add_rounded),
+            )
+          : null,
       body: Column(
         children: [
           _FiltrosBar(filtros: filtros),
@@ -94,9 +110,11 @@ class MovimientosPage extends ConsumerWidget {
                       _TotalesMesCard(movimientos: movimientos),
                       Expanded(
                         child: ListView.separated(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
+                          padding: EdgeInsets.only(
+                            left: 16,
+                            right: 16,
+                            top: 8,
+                            bottom: MediaQuery.paddingOf(context).bottom + 88,
                           ),
                           itemCount: movimientos.length,
                           separatorBuilder: (_, _) => const SizedBox(height: 8),

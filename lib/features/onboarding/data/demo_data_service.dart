@@ -391,16 +391,25 @@ class DemoDataService {
     required AppDatabase db,
     required AuditedWriter writer,
   }) async {
-    await db.transaction(() async {
-      await db.delete(db.cotizaciones).go();
-      await db.delete(db.partidasProyecto).go();
-      await db.delete(db.proyectos).go();
-      await db.delete(db.presupuestosMensuales).go();
-      await db.delete(db.gastosFijosPagos).go();
-      await db.delete(db.gastosFijos).go();
-      await db.delete(db.movimientos).go();
-      await db.delete(db.cuentas).go();
-    });
+    // Desactivar temporalmente foreign keys para evitar errores de integridad cruzada
+    await db.customStatement('PRAGMA foreign_keys = OFF;');
+    try {
+      await db.transaction(() async {
+        await db.delete(db.cotizaciones).go();
+        await db.delete(db.partidasProyecto).go();
+        await db.delete(db.proyectos).go();
+        await db.delete(db.presupuestosMensuales).go();
+        await db.delete(db.ingresosFijosCobros).go();
+        await db.delete(db.ingresosFijos).go();
+        await db.delete(db.gastosFijosPagos).go();
+        await db.delete(db.gastosFijos).go();
+        await db.delete(db.movimientos).go();
+        await db.delete(db.cuentas).go();
+        await db.ajustesDao.setValor('datos_demo_cargados', 'false');
+      });
+    } finally {
+      await db.customStatement('PRAGMA foreign_keys = ON;');
+    }
 
     await writer.write<void>(
       action: () async {},
