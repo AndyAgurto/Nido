@@ -316,7 +316,7 @@ class DemoDataService {
         tipo: 'construccion',
         descripcion: const Value('Cambio de sanitarios, inodoro ecológico y cerámico porcelanato'),
         presupuestoObjetivoCent: Money.fromSoles(5500.0).cents,
-        estado: const Value('en_curso'),
+        estado: const Value('enEjecucion'),
       ),
       writer,
     );

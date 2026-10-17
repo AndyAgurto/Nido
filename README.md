@@ -5,10 +5,10 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.10+-0175C2?logo=dart&logoColor=white)](https://dart.dev)
 [![Drift](https://img.shields.io/badge/Database-Drift%20SQLite-00599C)](https://drift.simonbinder.eu)
-[![Tests](https://img.shields.io/badge/Tests-54%20Passing-brightgreen)](test/)
+[![Tests](https://img.shields.io/badge/Tests-73%20Passing-brightgreen)](test/)
 [![Arquitectura](https://img.shields.io/badge/Architecture-Feature--First%20Clean-success)](#arquitectura-del-proyecto)
 [![Privacidad](https://img.shields.io/badge/Privacidad-100%25%20Local%20%7C%20Zero%20Cloud-2E7D32)](#privacidad-y-restricciones-no-negociables)
-[![Formato](https://img.shields.io/badge/Tablet-Master--Detail%20%E2%89%A5840dp-E65100)](#diseño-y-experiencia-tablet)
+[![Formato](https://img.shields.io/badge/Mobile%20%26%20Tablet-Responsive%20Adaptive-00796B)](#diseño-y-experiencia-tablet)
 
 ---
 
@@ -225,7 +225,7 @@ flutter test
 
 Salida esperada:
 ```text
-00:05 +45: All tests passed!
+00:12 +73: All tests passed!
 ```
 
 ### Ejecutar Análisis Estático

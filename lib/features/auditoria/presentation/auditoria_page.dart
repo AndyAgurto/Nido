@@ -16,12 +16,16 @@ class AuditoriaPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final isMobile = MediaQuery.of(context).size.width < 720;
     final listaAsync = ref.watch(auditoriaListStreamProvider);
     final seleccionado = ref.watch(auditoriaSeleccionadaProvider);
 
     return Scaffold(
+      appBar: isMobile ? null : AppBar(
+        title: const Text("Auditoría"),
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(isMobile ? 12.0 : 24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

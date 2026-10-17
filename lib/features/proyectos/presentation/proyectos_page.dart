@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import '../../../shared/widgets/dynamic_text.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/database_providers.dart';
 import '../../../core/database/app_database.dart';
@@ -30,11 +31,15 @@ class ProyectosPage extends ConsumerWidget {
         title: const Text('Proyectos del Hogar'),
         actions: [
           FilledButton.icon(
-            onPressed: () {
-              showDialog(
+            onPressed: () async {
+              final nuevoId = await showDialog<int>(
                 context: context,
                 builder: (context) => const NuevoProyectoDialog(),
               );
+              if (nuevoId != null) {
+                ref.read(proyectosFiltroEstadoProvider.notifier).state = null;
+                ref.read(proyectoSeleccionadoIdProvider.notifier).state = nuevoId;
+              }
             },
             icon: const Icon(Icons.add_rounded),
             label: const Text('Nuevo Proyecto'),
@@ -70,11 +75,15 @@ class ProyectosPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   FilledButton.tonalIcon(
-                    onPressed: () {
-                      showDialog(
+                    onPressed: () async {
+                      final nuevoId = await showDialog<int>(
                         context: context,
                         builder: (context) => const NuevoProyectoDialog(),
                       );
+                      if (nuevoId != null) {
+                        ref.read(proyectosFiltroEstadoProvider.notifier).state = null;
+                        ref.read(proyectoSeleccionadoIdProvider.notifier).state = nuevoId;
+                      }
                     },
                     icon: const Icon(Icons.add),
                     label: const Text('Crear Primer Proyecto'),
@@ -221,13 +230,11 @@ class _ProyectoListItem extends ConsumerWidget {
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
+                    child: DynamicScrollText(
                       proyecto.nombre,
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   _buildEstadoPill(proyecto.estado),
@@ -398,7 +405,7 @@ class _ProyectoDetallePanelState extends ConsumerState<_ProyectoDetallePanel> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            DynamicScrollText(
                               p.nombre,
                               style: theme.textTheme.headlineSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
@@ -426,18 +433,28 @@ class _ProyectoDetallePanelState extends ConsumerState<_ProyectoDetallePanel> {
                           border: Border.all(color: theme.colorScheme.outlineVariant),
                         ),
                         child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: p.estado,
-                            items: const [
-                              DropdownMenuItem(value: 'idea', child: Text('En Idea')),
-                              DropdownMenuItem(value: 'cotizando', child: Text('Cotizando')),
-                              DropdownMenuItem(value: 'aprobado', child: Text('Aprobado')),
-                              DropdownMenuItem(value: 'enEjecucion', child: Text('En EjecuciÃ³n')),
-                              DropdownMenuItem(value: 'terminado', child: Text('Terminado')),
-                              DropdownMenuItem(value: 'cancelado', child: Text('Cancelado')),
-                            ],
-                            onChanged: (val) {
-                              if (val != null) _cambiarEstado(val);
+                          child: Builder(
+                            builder: (context) {
+                              final rawEstado = p.estado;
+                              final normalized = (rawEstado == 'en_curso') ? 'enEjecucion' : rawEstado;
+                              final items = <DropdownMenuItem<String>>[
+                                const DropdownMenuItem(value: 'idea', child: Text('En Idea')),
+                                const DropdownMenuItem(value: 'cotizando', child: Text('Cotizando')),
+                                const DropdownMenuItem(value: 'aprobado', child: Text('Aprobado')),
+                                const DropdownMenuItem(value: 'enEjecucion', child: Text('En Ejecución')),
+                                const DropdownMenuItem(value: 'terminado', child: Text('Terminado')),
+                                const DropdownMenuItem(value: 'cancelado', child: Text('Cancelado')),
+                              ];
+                              if (!items.any((i) => i.value == normalized)) {
+                                items.add(DropdownMenuItem(value: normalized, child: Text(normalized)));
+                              }
+                              return DropdownButton<String>(
+                                value: normalized,
+                                items: items,
+                                onChanged: (val) {
+                                  if (val != null) _cambiarEstado(val);
+                                },
+                              );
                             },
                           ),
                         ),
@@ -491,8 +508,11 @@ class _ProyectoDetallePanelState extends ConsumerState<_ProyectoDetallePanel> {
           const SizedBox(height: 24),
 
           // SecciÃ³n de Partidas Presupuestarias y Comparador
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 8,
             children: [
               Text(
                 'Partidas Presupuestarias y Cotizaciones',

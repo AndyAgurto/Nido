@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/money/money.dart';
 import '../../domain/dashboard_resumen.dart';
@@ -108,12 +108,16 @@ class ResumenFinancieroCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            Text(
-              disp.format(),
-              style: theme.textTheme.headlineMedium?.copyWith(
-                color: esPositivo ? Colors.white : theme.colorScheme.onErrorContainer,
-                fontWeight: FontWeight.bold,
-                fontSize: 32,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                disp.format(),
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  color: esPositivo ? Colors.white : theme.colorScheme.onErrorContainer,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 26,
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -271,18 +275,26 @@ class _MiniMetricaCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Text(
-              titulo,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                titulo,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              monto.format(),
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                monto.format(),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],

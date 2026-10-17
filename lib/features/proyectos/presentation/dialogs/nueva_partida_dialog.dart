@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:nido/core/formatters/money_input_formatter.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column, isNull, isNotNull;
 import '../../../../core/providers/database_providers.dart';
@@ -109,9 +110,13 @@ class _NuevaPartidaDialogState extends ConsumerState<NuevaPartidaDialog> {
                 TextFormField(
                   controller: _presupuestoCtrl,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: const [
+                    BcpMoneyInputFormatter(),
+                  ],
                   decoration: const InputDecoration(
                     labelText: 'Presupuesto Estimado *',
                     prefixText: 'S/ ',
+
                     hintText: '0.00',
                     prefixIcon: Icon(Icons.attach_money_rounded),
                   ),

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/utils/date_formatters.dart';
 import 'dashboard_providers.dart';
@@ -19,6 +19,7 @@ class DashboardPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final isMobile = MediaQuery.of(context).size.width < 720;
     final periodo = ref.watch(dashboardPeriodoSeleccionadoProvider);
 
     final resumenAsync = ref.watch(dashboardResumenStreamProvider);
@@ -29,19 +30,45 @@ class DashboardPage extends ConsumerWidget {
     final proyectosAsync = ref.watch(dashboardProyectosActivosStreamProvider);
 
     return Scaffold(
+      appBar: isMobile ? null : AppBar(
+        leading: isMobile
+            ? Builder(
+                builder: (ctx) => IconButton(
+                  icon: const Icon(Icons.menu_rounded),
+                  tooltip: 'Menú',
+                  onPressed: () => ctx.findRootAncestorStateOfType<ScaffoldState>()?.openDrawer(),
+                ),
+              )
+            : null,
+        title: const Text('Dashboard'),
+        actions: [
+          if (isMobile)
+            IconButton.filledTonal(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => const ExportarReporteDialog(),
+                );
+              },
+              icon: const Icon(Icons.file_download_outlined),
+              tooltip: 'Exportar Reporte',
+            ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: CustomScrollView(
         slivers: [
           // Barra de cabecera con selector de mes y botón de exportar
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+              padding: EdgeInsets.fromLTRB(isMobile ? 12 : 24, 12, isMobile ? 12 : 24, 12),
               child: _buildHeader(context, ref, periodo, theme),
             ),
           ),
 
           // Contenido principal del dashboard
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: EdgeInsets.symmetric(horizontal: isMobile ? 12 : 24),
             sliver: SliverToBoxAdapter(
               child: resumenAsync.when(
                 data: (resumen) {
@@ -238,17 +265,18 @@ class DashboardPage extends ConsumerWidget {
           ],
         ),
 
-        // Botón de Exportar Reporte
-        FilledButton.tonalIcon(
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (_) => const ExportarReporteDialog(),
-            );
-          },
-          icon: const Icon(Icons.file_download_outlined, size: 20),
-          label: const Text('Exportar Reporte'),
-        ),
+        // Botón de Exportar Reporte (visible solo en tablet)
+        if (MediaQuery.of(context).size.width >= 720)
+          FilledButton.tonalIcon(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => const ExportarReporteDialog(),
+              );
+            },
+            icon: const Icon(Icons.file_download_outlined, size: 20),
+            label: const Text('Exportar Reporte'),
+          ),
       ],
     );
   }

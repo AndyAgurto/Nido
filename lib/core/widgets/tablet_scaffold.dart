@@ -60,6 +60,11 @@ class TabletScaffold extends StatelessWidget {
       label: 'Auditoría',
     ),
     _NavDestinationData(
+      icon: Icons.category_outlined,
+      selectedIcon: Icons.category_rounded,
+      label: 'Categorías',
+    ),
+    _NavDestinationData(
       icon: Icons.settings_outlined,
       selectedIcon: Icons.settings_rounded,
       label: 'Ajustes',
@@ -198,8 +203,8 @@ class TabletScaffold extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 30,
-              height: 30,
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -207,15 +212,15 @@ class TabletScaffold extends StatelessWidget {
               child: Image.asset(
                 'assets/images/logo.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const Icon(Icons.home_rounded, size: 24, color: AppColors.primary),
+                errorBuilder: (_, _, _) => const Icon(Icons.home_rounded, size: 22, color: AppColors.primary),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Flexible(
               child: Text(
                 activeDestination.label,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ),
           ],

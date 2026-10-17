@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/money/money.dart';
@@ -14,12 +14,39 @@ class ReportesPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-        final tendenciaAsync = ref.watch(dashboardTendenciaStreamProvider);
+    final isMobile = MediaQuery.of(context).size.width < 720;
+    final tendenciaAsync = ref.watch(dashboardTendenciaStreamProvider);
     final categoriasAsync = ref.watch(dashboardGastosCategoriasStreamProvider);
 
     return Scaffold(
+      appBar: isMobile ? null : AppBar(
+        leading: isMobile
+            ? Builder(
+                builder: (ctx) => IconButton(
+                  icon: const Icon(Icons.menu_rounded),
+                  tooltip: 'Menú',
+                  onPressed: () => ctx.findRootAncestorStateOfType<ScaffoldState>()?.openDrawer(),
+                ),
+              )
+            : null,
+        title: const Text('Reportes Financieros'),
+        actions: [
+          if (isMobile)
+            IconButton.filled(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => const ExportarReporteDialog(),
+                );
+              },
+              icon: const Icon(Icons.download_rounded),
+              tooltip: 'Exportar CSV / PDF',
+            ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(isMobile ? 12.0 : 24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -45,16 +72,17 @@ class ReportesPage extends ConsumerWidget {
                     ),
                   ],
                 ),
-                FilledButton.icon(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (_) => const ExportarReporteDialog(),
-                    );
-                  },
-                  icon: const Icon(Icons.download_rounded),
-                  label: const Text('Exportar CSV / PDF'),
-                ),
+                if (!isMobile)
+                  FilledButton.icon(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => const ExportarReporteDialog(),
+                      );
+                    },
+                    icon: const Icon(Icons.download_rounded),
+                    label: const Text('Exportar CSV / PDF'),
+                  ),
               ],
             ),
             const SizedBox(height: 24),

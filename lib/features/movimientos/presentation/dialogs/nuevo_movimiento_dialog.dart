@@ -1,3 +1,4 @@
+import 'package:nido/core/formatters/money_input_formatter.dart';
 import '../../../../core/utils/date_formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -118,6 +119,9 @@ class _NuevoMovimientoDialogState
                   ),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: const [
+                    BcpMoneyInputFormatter(),
+                  ],
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),

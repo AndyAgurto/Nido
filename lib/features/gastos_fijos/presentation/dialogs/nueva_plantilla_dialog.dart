@@ -1,3 +1,4 @@
+import 'package:nido/core/formatters/money_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/database_providers.dart';
@@ -112,6 +113,9 @@ class _NuevaPlantillaDialogState
                         ),
                         keyboardType:
                             const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: const [
+                    BcpMoneyInputFormatter(),
+                  ],
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return 'Ingresa el monto';
                           final m = Money.tryParse(v);

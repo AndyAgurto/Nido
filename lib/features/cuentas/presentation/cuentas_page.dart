@@ -1,3 +1,4 @@
+import '../../../shared/widgets/dynamic_text.dart';
 import '../../../shared/widgets/empty_state_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +6,7 @@ import 'package:drift/drift.dart' as drift;
 import '../../../core/providers/database_providers.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/money/money.dart';
+import '../../../core/formatters/money_input_formatter.dart';
 import '../../../core/widgets/master_detail_layout.dart';
 import '../../../app/constants/app_constants.dart';
 import '../../../app/theme/app_colors.dart';
@@ -153,7 +155,7 @@ class _CuentaListItem extends ConsumerWidget {
           backgroundColor: AppColors.primaryContainer,
           child: Icon(_getIconData(cuenta.icono), color: AppColors.primary),
         ),
-        title: Text(
+        title: DynamicScrollText(
           cuenta.nombre,
           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
@@ -347,10 +349,18 @@ class _DialogoCrearEditarCuentaState extends ConsumerState<_DialogoCrearEditarCu
     super.initState();
     _nombreCtrl = TextEditingController(text: widget.cuenta?.nombre ?? '');
     _saldoInicialCtrl = TextEditingController(
-      text: widget.cuenta != null ? Money.fromCents(widget.cuenta!.saldoInicialCent).inSoles.toStringAsFixed(2) : '0.00',
+      text: widget.cuenta != null
+          ? (Money.fromCents(widget.cuenta!.saldoInicialCent).inSoles).toStringAsFixed(2)
+          : '',
     );
     if (widget.cuenta != null) {
       _tipo = widget.cuenta!.tipo;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final saldo = await ref.read(cuentasDaoProvider).calcularSaldoCuenta(widget.cuenta!.id);
+        if (mounted) {
+          _saldoInicialCtrl.text = saldo.inSoles.toStringAsFixed(2);
+        }
+      });
     }
   }
 
@@ -395,11 +405,17 @@ class _DialogoCrearEditarCuentaState extends ConsumerState<_DialogoCrearEditarCu
               const SizedBox(height: 16),
               TextFormField(
                 controller: _saldoInicialCtrl,
-                decoration: const InputDecoration(labelText: 'Saldo Inicial (S/ PEN)', prefixText: 'S/ '),
+                decoration: InputDecoration(
+                  labelText: isEditing ? 'Saldo de la Cuenta (S/ PEN)' : 'Saldo Inicial (S/ PEN)',
+                  prefixText: 'S/ ',
+                  hintText: '0.00',
+                ),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                enabled: !isEditing,
+                inputFormatters: const [
+                  BcpMoneyInputFormatter(),
+                ],
                 validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Ingresa un saldo inicial';
+                  if (v == null || v.trim().isEmpty) return 'Ingresa el monto';
                   final parsed = Money.tryParse(v);
                   if (parsed == null) return 'Monto inválido';
                   return null;
@@ -424,9 +440,9 @@ class _DialogoCrearEditarCuentaState extends ConsumerState<_DialogoCrearEditarCu
 
     final dao = ref.read(cuentasDaoProvider);
     final writer = ref.read(auditedWriterProvider);
+    final saldo = Money.parse(_saldoInicialCtrl.text);
 
     if (widget.cuenta == null) {
-      final saldo = Money.parse(_saldoInicialCtrl.text);
       await dao.insertCuenta(
         CuentasCompanion.insert(
           nombre: _nombreCtrl.text.trim(),
@@ -437,15 +453,21 @@ class _DialogoCrearEditarCuentaState extends ConsumerState<_DialogoCrearEditarCu
         writer,
       );
     } else {
+      final saldoActual = await dao.calcularSaldoCuenta(widget.cuenta!.id);
+      final deltaMovimientos = saldoActual.cents - widget.cuenta!.saldoInicialCent;
+      final nuevoSaldoInicialCent = saldo.cents - deltaMovimientos;
+
       await dao.updateCuenta(
         widget.cuenta!,
         CuentasCompanion(
           nombre: drift.Value(_nombreCtrl.text.trim()),
           tipo: drift.Value(_tipo),
           icono: drift.Value(_icono),
+          saldoInicialCent: drift.Value(nuevoSaldoInicialCent),
         ),
         writer,
       );
+      ref.invalidate(saldoCuentaProvider(widget.cuenta!.id));
     }
 
     if (mounted) Navigator.pop(context);

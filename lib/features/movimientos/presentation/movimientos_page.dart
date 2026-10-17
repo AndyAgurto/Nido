@@ -1,3 +1,4 @@
+import '../../../shared/widgets/dynamic_text.dart';
 import '../../../core/utils/date_formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -159,16 +160,17 @@ class _FiltrosBar extends ConsumerWidget {
     final theme = Theme.of(context);
     final notifier = ref.read(movimientosFiltrosProvider.notifier);
     final cuentas = ref.watch(cuentasActivasStreamProvider).value ?? [];
-    final monthName =
-        AppDateFormats.formatMesAnio(filtros.mes);
+    final monthName = AppDateFormats.formatMesAnio(filtros.mes);
 
     return Container(
       color: theme.colorScheme.surfaceContainerLowest,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompact = constraints.maxWidth < 650;
+
+          final monthSelector = Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
                 icon: const Icon(Icons.chevron_left_rounded),
@@ -193,109 +195,145 @@ class _FiltrosBar extends ConsumerWidget {
                 onPressed: () => notifier.avanzarMes(),
                 tooltip: 'Mes siguiente',
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Buscar descripción o notas...',
-                    prefixIcon: const Icon(Icons.search, size: 20),
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 12,
-                    ),
-                    suffixIcon: filtros.busqueda.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear, size: 18),
-                            onPressed: () => notifier.setBusqueda(''),
-                          )
-                        : null,
-                  ),
-                  onChanged: (val) => notifier.setBusqueda(val),
-                ),
+            ],
+          );
+
+          final searchWidget = TextField(
+            scrollPhysics: const BouncingScrollPhysics(),
+            decoration: InputDecoration(
+              hintText: 'Buscar descripción o notas...',
+              prefixIcon: const Icon(Icons.search, size: 20),
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 10,
+                horizontal: 12,
               ),
-              const SizedBox(width: 16),
-              Container(
-                height: 44,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: theme.colorScheme.outlineVariant),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<int?>(
-                    value: filtros.cuentaId,
-                    isDense: true,
-                    items: [
-                      const DropdownMenuItem<int?>(
-                        value: null,
-                        child: Text('Todas las cuentas'),
-                      ),
-                      ...cuentas.map(
-                        (c) => DropdownMenuItem<int?>(
-                          value: c.id,
-                          child: Text(c.nombre),
-                        ),
-                      ),
-                    ],
-                    onChanged: (val) => notifier.setCuenta(val),
+              suffixIcon: filtros.busqueda.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, size: 18),
+                      onPressed: () => notifier.setBusqueda(''),
+                    )
+                  : null,
+            ),
+            onChanged: (val) => notifier.setBusqueda(val),
+          );
+
+          final cuentasDropdown = Container(
+            height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              border: Border.all(color: theme.colorScheme.outlineVariant),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<int?>(
+                isExpanded: isCompact,
+                value: filtros.cuentaId,
+                isDense: true,
+                items: [
+                  const DropdownMenuItem<int?>(
+                    value: null,
+                    child: Text('Todas las cuentas', overflow: TextOverflow.ellipsis),
                   ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Anulados',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+                  ...cuentas.map(
+                    (c) => DropdownMenuItem<int?>(
+                      value: c.id,
+                      child: Text(c.nombre, overflow: TextOverflow.ellipsis),
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  Switch(
-                    value: filtros.incluirAnulados,
-                    onChanged: (_) => notifier.toggleIncluirAnulados(),
                   ),
                 ],
+                onChanged: (val) => notifier.setCuenta(val),
+              ),
+            ),
+          );
+
+          final switchAnulados = Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Anulados',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Switch(
+                value: filtros.incluirAnulados,
+                onChanged: (_) => notifier.toggleIncluirAnulados(),
               ),
             ],
-          ),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                ChoiceChip(
-                  label: const Text('Todos'),
-                  selected: filtros.tipo == null,
-                  onSelected: (_) => notifier.setTipo(null),
+          );
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (isCompact) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    monthSelector,
+                    switchAnulados,
+                  ],
                 ),
-                const SizedBox(width: 8),
-                ChoiceChip(
-                  label: const Text('Ingresos'),
-                  avatar: const Icon(Icons.arrow_downward_rounded, size: 16, color: AppColors.income),
-                  selected: filtros.tipo == 'ingreso',
-                  onSelected: (_) => notifier.setTipo('ingreso'),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(flex: 3, child: searchWidget),
+                    const SizedBox(width: 8),
+                    Expanded(flex: 2, child: cuentasDropdown),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                ChoiceChip(
-                  label: const Text('Gastos'),
-                  avatar: const Icon(Icons.arrow_upward_rounded, size: 16, color: AppColors.expense),
-                  selected: filtros.tipo == 'gasto',
-                  onSelected: (_) => notifier.setTipo('gasto'),
-                ),
-                const SizedBox(width: 8),
-                ChoiceChip(
-                  label: const Text('Transferencias'),
-                  avatar: const Icon(Icons.swap_horiz_rounded, size: 16, color: AppColors.transfer),
-                  selected: filtros.tipo == 'transferencia',
-                  onSelected: (_) => notifier.setTipo('transferencia'),
+              ] else ...[
+                Row(
+                  children: [
+                    monthSelector,
+                    const SizedBox(width: 16),
+                    Expanded(child: searchWidget),
+                    const SizedBox(width: 16),
+                    cuentasDropdown,
+                    const SizedBox(width: 16),
+                    switchAnulados,
+                  ],
                 ),
               ],
-            ),
-          ),
-        ],
+              const SizedBox(height: 8),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    ChoiceChip(
+                      label: const Text('Todos'),
+                      selected: filtros.tipo == null,
+                      onSelected: (_) => notifier.setTipo(null),
+                    ),
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      label: const Text('Ingresos'),
+                      avatar: const Icon(Icons.arrow_downward_rounded, size: 16, color: AppColors.income),
+                      selected: filtros.tipo == 'ingreso',
+                      onSelected: (_) => notifier.setTipo('ingreso'),
+                    ),
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      label: const Text('Gastos'),
+                      avatar: const Icon(Icons.arrow_upward_rounded, size: 16, color: AppColors.expense),
+                      selected: filtros.tipo == 'gasto',
+                      onSelected: (_) => notifier.setTipo('gasto'),
+                    ),
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      label: const Text('Transferencias'),
+                      avatar: const Icon(Icons.swap_horiz_rounded, size: 16, color: AppColors.transfer),
+                      selected: filtros.tipo == 'transferencia',
+                      onSelected: (_) => notifier.setTipo('transferencia'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -392,11 +430,15 @@ class _TotalItem extends StatelessWidget {
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-                Text(
-                  monto.format(),
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: color,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    monto.format(),
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
                   ),
                 ),
               ],
@@ -462,7 +504,7 @@ class _MovimientoListItem extends StatelessWidget {
         title: Row(
           children: [
             Expanded(
-              child: Text(
+              child: DynamicScrollText(
                 movimiento.descripcion,
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,

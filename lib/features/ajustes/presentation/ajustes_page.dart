@@ -11,6 +11,7 @@ import '../../onboarding/data/demo_data_service.dart';
 import '../../onboarding/presentation/onboarding_page.dart';
 import '../data/respaldo_service.dart';
 import 'ajustes_providers.dart';
+import '../../categorias/presentation/categorias_page.dart';
 
 /// Pantalla de Configuración, Apariencia, Seguridad Local, Respaldos ZIP y Datos Demo.
 class AjustesPage extends ConsumerStatefulWidget {
@@ -33,17 +34,31 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
     final diasDesdeRespaldoAsync = ref.watch(diasDesdeUltimoRespaldoProvider);
     final tienePinAsync = ref.watch(tienePinConfiguradoProvider);
     final biometriaDispAsync = ref.watch(biometriaDisponibleProvider);
-    final biometriaActivaAsync = ref.watch(biometriaActivaProvider);
+    // biometria removida
     final currentThemeMode = ref.watch(themeModeProvider);
 
     final requiereRecordatorio = requiereRecordatorioAsync.value ?? false;
     final tienePin = tienePinAsync.value ?? false;
     final biometriaDisponible = biometriaDispAsync.value ?? false;
-    final biometriaActiva = biometriaActivaAsync.value ?? false;
+    const biometriaActiva = false;
+
+    final isMobile = MediaQuery.of(context).size.width < 720;
 
     return Scaffold(
+      appBar: isMobile ? null : AppBar(
+        leading: isMobile
+            ? Builder(
+                builder: (ctx) => IconButton(
+                  icon: const Icon(Icons.menu_rounded),
+                  tooltip: 'Menú',
+                  onPressed: () => ctx.findRootAncestorStateOfType<ScaffoldState>()?.openDrawer(),
+                ),
+              )
+            : null,
+        title: const Text('Ajustes del Sistema'),
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(isMobile ? 12.0 : 24.0),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 960),
@@ -103,6 +118,11 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
 
                 // 2. SECCIÓN DE APARIENCIA (MODO OSCURO / CLARO)
                 _buildSeccionApariencia(theme, currentThemeMode),
+
+                const SizedBox(height: 24),
+
+                // SECCIÓN DE CATEGORÍAS DEL HOGAR Y PROYECTOS
+                _buildSeccionCategorias(context, theme),
 
                 const SizedBox(height: 24),
 
@@ -594,37 +614,7 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
 
             const Divider(height: 20),
 
-            // Item 2: Biometría
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              secondary: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: (biometriaActiva ? AppColors.primary : theme.colorScheme.surfaceContainerHighest)
-                      .withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.fingerprint_rounded,
-                  color: biometriaActiva ? AppColors.primary : theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              title: const Text('Autenticación Biométrica (Huella / Rostro)'),
-              subtitle: Text(
-                !biometriaDisponible
-                    ? 'Tu dispositivo no reporta sensores biométricos disponibles.'
-                    : !tienePin
-                        ? 'Debes activar un PIN antes de habilitar la biometría.'
-                        : 'Permite desbloquear Nido al instante con tus credenciales nativas.',
-              ),
-              value: biometriaActiva && tienePin && biometriaDisponible,
-              onChanged: (tienePin && biometriaDisponible)
-                  ? (val) async {
-                      await ref.read(seguridadServiceProvider).setBiometriaActiva(val);
-                      ref.invalidate(biometriaActivaProvider);
-                    }
-                  : null,
-            ),
+            
 
             const Divider(height: 20),
 
@@ -1158,4 +1148,65 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
       }
     }
   }
+  Widget _buildSeccionCategorias(BuildContext context, ThemeData theme) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.category_outlined, color: AppColors.primary, size: 24),
+                const SizedBox(width: 10),
+                Text(
+                  'Categorías del Hogar y Proyectos',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Personaliza las categorías de gastos, ingresos familiares y los tipos de proyectos de tu hogar.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.tune_rounded, color: AppColors.primary),
+              ),
+              title: const Text('Administrar Categorías'),
+              subtitle: const Text('Crear, editar, activar o cambiar colores e íconos'),
+              trailing: FilledButton.tonalIcon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const CategoriasPage()),
+                  );
+                },
+                icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                label: const Text('Abrir'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 }

@@ -7,6 +7,7 @@ import 'theme/theme_provider.dart';
 import '../core/security/seguridad_providers.dart';
 import '../core/widgets/tablet_scaffold.dart';
 import '../features/ajustes/presentation/ajustes_page.dart';
+import '../features/categorias/presentation/categorias_page.dart';
 import '../features/auditoria/presentation/auditoria_page.dart';
 import '../features/cuentas/presentation/cuentas_page.dart';
 import '../features/dashboard/presentation/dashboard_page.dart';
@@ -73,6 +74,7 @@ class _NidoAppState extends ConsumerState<NidoApp> with WidgetsBindingObserver {
     'Proyectos del Hogar',
     'Reportes Financieros',
     'Bitácora de Auditoría',
+    'Categorías del Hogar',
     'Ajustes del Sistema',
   ];
 
@@ -95,6 +97,8 @@ class _NidoAppState extends ConsumerState<NidoApp> with WidgetsBindingObserver {
       case 7:
         return const AuditoriaPage();
       case 8:
+        return const CategoriasPage();
+      case 9:
         return const AjustesPage();
       default:
         return _BaseTabletContent(
@@ -143,6 +147,18 @@ class _NidoAppState extends ConsumerState<NidoApp> with WidgetsBindingObserver {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
+      builder: (context, child) {
+        final mediaQuery = MediaQuery.of(context);
+        // Evita que la configuración de fuentes gigantes del sistema deforme botones y textos
+        final clampedScaler = mediaQuery.textScaler.clamp(
+          minScaleFactor: 0.85,
+          maxScaleFactor: 1.0,
+        );
+        return MediaQuery(
+          data: mediaQuery.copyWith(textScaler: clampedScaler),
+          child: child!,
+        );
+      },
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

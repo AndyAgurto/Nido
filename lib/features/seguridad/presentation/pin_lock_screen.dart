@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/security/seguridad_providers.dart';
 
-/// Pantalla de desbloqueo mediante PIN y Biometría.
-/// Cumple con las pautas de accesibilidad para tablets (touch targets >= 48dp).
+/// Pantalla de desbloqueo exclusivo mediante PIN (4 a 6 dígitos).
+/// Mobile-First, altamente accesible (touch targets >= 48dp) y sin biometría.
 class PinLockScreen extends ConsumerStatefulWidget {
   const PinLockScreen({
     super.key,
@@ -24,7 +24,7 @@ class _PinLockScreenState extends ConsumerState<PinLockScreen>
   String? _errorMensaje;
   bool _estaValidando = false;
   late AnimationController _shakeController;
-  
+
   @override
   void initState() {
     super.initState();
@@ -32,27 +32,12 @@ class _PinLockScreenState extends ConsumerState<PinLockScreen>
       duration: const Duration(milliseconds: 400),
       vsync: this,
     );
-
-    // Intentar autenticación biométrica automática al mostrar la pantalla si está habilitada
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _intentarBiometriaAutomatica();
-    });
   }
 
   @override
   void dispose() {
     _shakeController.dispose();
     super.dispose();
-  }
-
-  Future<void> _intentarBiometriaAutomatica() async {
-    final biometriaActiva = await ref.read(biometriaActivaProvider.future);
-    if (!mounted || !biometriaActiva) return;
-
-    final exito = await ref.read(seguridadServiceProvider).autenticarBiometrico();
-    if (exito && mounted) {
-      _desbloquear();
-    }
   }
 
   void _onNumeroPresionado(String digito) {
@@ -65,10 +50,9 @@ class _PinLockScreenState extends ConsumerState<PinLockScreen>
 
     HapticFeedback.lightImpact();
 
-    // Si alcanza 4 a 6 dígitos, permitimos validar automáticamente si llega a 6,
-    // o el usuario puede presionar enter/validar. Por defecto, validamos al ingresar 4 o 6.
-    if (_pin.length == 4 || _pin.length == 6) {
-      _verificarPin();
+    // Verificación inteligente: si tiene entre 4 y 6 dígitos, probamos si coincide
+    if (_pin.length >= 4) {
+      _verificarPin(silencioso: _pin.length < 6);
     }
   }
 
@@ -81,8 +65,15 @@ class _PinLockScreenState extends ConsumerState<PinLockScreen>
     HapticFeedback.selectionClick();
   }
 
-  Future<void> _verificarPin() async {
-    if (_pin.isEmpty) return;
+  Future<void> _verificarPin({bool silencioso = false}) async {
+    if (_pin.length < 4) {
+      if (!silencioso) {
+        setState(() {
+          _errorMensaje = 'El PIN debe tener al menos 4 dígitos.';
+        });
+      }
+      return;
+    }
 
     setState(() {
       _estaValidando = true;
@@ -96,8 +87,8 @@ class _PinLockScreenState extends ConsumerState<PinLockScreen>
     if (esValido) {
       _desbloquear();
     } else {
-      // Si con 4 falló pero aún no llegó a 6, permitimos continuar escribiendo
-      if (_pin.length == 4) {
+      if (silencioso && _pin.length < 6) {
+        // Permitir seguir escribiendo sin mostrar error aún
         setState(() {
           _estaValidando = false;
         });
@@ -115,6 +106,7 @@ class _PinLockScreenState extends ConsumerState<PinLockScreen>
   }
 
   void _desbloquear() {
+    HapticFeedback.mediumImpact();
     ref.read(estaBloqueadoProvider.notifier).state = false;
     widget.onDesbloqueado?.call();
   }
@@ -122,8 +114,6 @@ class _PinLockScreenState extends ConsumerState<PinLockScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final biometriaActivaAsync = ref.watch(biometriaActivaProvider);
-    final biometriaActiva = biometriaActivaAsync.value ?? false;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -135,119 +125,121 @@ class _PinLockScreenState extends ConsumerState<PinLockScreen>
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
                 child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo de Nido con borde
-                  Container(
-                    width: 76,
-                    height: 76,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryContainer,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.3),
-                        width: 2,
-                      ),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Image.asset(
-                      'assets/images/logo.png',
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const Icon(
-                        Icons.lock_rounded,
-                        color: AppColors.primary,
-                        size: 36,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  Text(
-                    'Nido Protegido',
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  Text(
-                    'Ingresa tu PIN de seguridad local para desbloquear',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-
-                  // Indicadores visuales de dígitos con animación shake
-                  AnimatedBuilder(
-                    animation: _shakeController,
-                    builder: (context, child) {
-                      final offset = (_shakeController.value > 0)
-                          ? (1 - _shakeController.value) *
-                              10 *
-                              ((_shakeController.value * 20 % 2 == 0) ? 1 : -1)
-                          : 0.0;
-                      return Transform.translate(
-                        offset: Offset(offset, 0),
-                        child: child,
-                      );
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(6, (index) {
-                        final estaLleno = index < _pin.length;
-                        return Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 8.0),
-                          width: 16,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: estaLleno
-                                ? AppColors.primary
-                                : theme.colorScheme.surfaceContainerHighest,
-                            border: Border.all(
-                              color: estaLleno
-                                  ? AppColors.primary
-                                  : theme.colorScheme.outline.withValues(alpha: 0.5),
-                              width: 1.5,
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Mensaje de error
-                  if (_errorMensaje != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: Text(
-                        _errorMensaje!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.error,
-                          fontWeight: FontWeight.w600,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Logo oficial de Nido
+                    Container(
+                      width: 76,
+                      height: 76,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryContainer,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          width: 2,
                         ),
                       ),
-                    )
-                  else
+                      clipBehavior: Clip.antiAlias,
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const Icon(
+                          Icons.lock_rounded,
+                          color: AppColors.primary,
+                          size: 36,
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 20),
 
-                  // Teclado numérico 3x4
-                  _buildTecladoNumerico(theme, biometriaActiva),
-                ],
+                    Text(
+                      'Nido Protegido',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    Text(
+                      'Ingresa tu PIN de seguridad (4 a 6 dígitos)',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+
+                    // Indicadores visuales de dígitos con animación shake (hasta 6 círculos)
+                    AnimatedBuilder(
+                      animation: _shakeController,
+                      builder: (context, child) {
+                        final offset = (_shakeController.value > 0)
+                            ? (1 - _shakeController.value) *
+                                10 *
+                                ((_shakeController.value * 20 % 2 == 0) ? 1 : -1)
+                            : 0.0;
+                        return Transform.translate(
+                          offset: Offset(offset, 0),
+                          child: child,
+                        );
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(6, (index) {
+                          final estaLleno = index < _pin.length;
+                          return Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 6.0),
+                            width: 14,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: estaLleno
+                                  ? AppColors.primary
+                                  : theme.colorScheme.surfaceContainerHighest,
+                              border: Border.all(
+                                color: estaLleno
+                                    ? AppColors.primary
+                                    : theme.colorScheme.outline.withValues(alpha: 0.4),
+                                width: 1.5,
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Mensaje de error
+                    if (_errorMensaje != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: Text(
+                          _errorMensaje!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.error,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      )
+                    else
+                      const SizedBox(height: 20),
+
+                    // Teclado numérico 3x4 accesible
+                    _buildTecladoNumerico(theme),
+                  ],
+                ),
               ),
             ),
-          ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildTecladoNumerico(ThemeData theme, bool biometriaActiva) {
+  Widget _buildTecladoNumerico(ThemeData theme) {
+    final puedeConfirmar = _pin.length >= 4;
+
     return Column(
       children: [
         for (var row = 0; row < 3; row++)
@@ -265,21 +257,20 @@ class _PinLockScreenState extends ConsumerState<PinLockScreen>
               ],
             ),
           ),
-        // Fila inferior: Biometría / 0 / Borrar
+        // Fila inferior: Confirmar / 0 / Borrar
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 6.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              if (biometriaActiva)
-                _buildBotonEspecial(
-                  icono: Icons.fingerprint_rounded,
-                  tooltip: 'Autenticación Biométrica',
-                  onTap: _intentarBiometriaAutomatica,
-                  theme: theme,
-                )
-              else
-                const SizedBox(width: 72, height: 72),
+              // Botón de confirmar PIN
+              _buildBotonEspecial(
+                icono: Icons.check_circle_rounded,
+                tooltip: 'Desbloquear',
+                onTap: puedeConfirmar ? () => _verificarPin(silencioso: false) : null,
+                colorIcono: puedeConfirmar ? AppColors.primary : theme.colorScheme.outlineVariant,
+                theme: theme,
+              ),
               _buildBotonKeypad(
                 texto: '0',
                 onTap: () => _onNumeroPresionado('0'),
@@ -329,7 +320,8 @@ class _PinLockScreenState extends ConsumerState<PinLockScreen>
   Widget _buildBotonEspecial({
     required IconData icono,
     required String tooltip,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
+    Color? colorIcono,
     required ThemeData theme,
   }) {
     return SizedBox(
@@ -347,7 +339,7 @@ class _PinLockScreenState extends ConsumerState<PinLockScreen>
               child: Icon(
                 icono,
                 size: 30,
-                color: theme.colorScheme.onSurfaceVariant,
+                color: colorIcono ?? theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ),

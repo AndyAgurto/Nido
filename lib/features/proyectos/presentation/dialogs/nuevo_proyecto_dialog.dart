@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:nido/core/formatters/money_input_formatter.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column, isNull, isNotNull;
 import '../../../../core/providers/database_providers.dart';
@@ -137,22 +138,37 @@ class _NuevoProyectoDialogState extends ConsumerState<NuevoProyectoDialog> {
                         Row(
                           children: [
                             Expanded(
-                              child: DropdownButtonFormField<String>(
-                                initialValue: _tipo,
-                                decoration: const InputDecoration(
-                                  labelText: 'Tipo de Proyecto',
-                                  prefixIcon: Icon(Icons.category_outlined),
-                                ),
-                                items: _tiposMap.entries
-                                    .map(
-                                      (e) => DropdownMenuItem(
-                                        value: e.key,
-                                        child: Text(e.value),
-                                      ),
-                                    )
-                                    .toList(),
-                                onChanged: (v) {
-                                  if (v != null) setState(() => _tipo = v);
+                              child: StreamBuilder<List<Categoria>>(
+                                stream: ref.watch(categoriasDaoProvider).watchCategorias(tipo: 'proyecto'),
+                                builder: (context, snapshot) {
+                                  final catsProy = snapshot.data ?? [];
+                                  final Map<String, String> mergedTipos = Map.from(_tiposMap);
+                                  for (final c in catsProy) {
+                                    mergedTipos[c.nombre.toLowerCase().replaceAll(' ', '_')] = c.nombre;
+                                  }
+
+                                  final effectiveTipo = mergedTipos.containsKey(_tipo)
+                                      ? _tipo
+                                      : (mergedTipos.keys.firstOrNull ?? 'decoracion');
+
+                                  return DropdownButtonFormField<String>(
+                                    initialValue: effectiveTipo,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Tipo de Proyecto',
+                                      prefixIcon: Icon(Icons.category_outlined),
+                                    ),
+                                    items: mergedTipos.entries
+                                        .map(
+                                          (e) => DropdownMenuItem(
+                                            value: e.key,
+                                            child: Text(e.value),
+                                          ),
+                                        )
+                                        .toList(),
+                                    onChanged: (v) {
+                                      if (v != null) setState(() => _tipo = v);
+                                    },
+                                  );
                                 },
                               ),
                             ),
@@ -183,9 +199,13 @@ class _NuevoProyectoDialogState extends ConsumerState<NuevoProyectoDialog> {
                         TextFormField(
                           controller: _presupuestoCtrl,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: const [
+                    BcpMoneyInputFormatter(),
+                  ],
                           decoration: const InputDecoration(
                             labelText: 'Presupuesto Objetivo *',
                             prefixText: 'S/ ',
+
                             hintText: '0.00',
                             prefixIcon: Icon(Icons.attach_money_rounded),
                           ),
@@ -348,9 +368,10 @@ class _NuevoProyectoDialogState extends ConsumerState<NuevoProyectoDialog> {
     final montoMoney = Money.tryParse(_presupuestoCtrl.text) ?? Money.zero;
 
     try {
+      int? nuevoId;
       if (widget.proyecto == null) {
         // Crear
-        await dao.insertProyecto(
+        nuevoId = await dao.insertProyecto(
           ProyectosCompanion.insert(
             nombre: _nombreCtrl.text.trim(),
             descripcion: Value(_descripcionCtrl.text.trim().isEmpty ? null : _descripcionCtrl.text.trim()),
@@ -382,7 +403,7 @@ class _NuevoProyectoDialogState extends ConsumerState<NuevoProyectoDialog> {
       }
 
       if (mounted) {
-        Navigator.pop(context, true);
+        Navigator.pop(context, widget.proyecto == null ? nuevoId : widget.proyecto!.id);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(

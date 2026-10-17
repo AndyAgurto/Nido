@@ -1,3 +1,4 @@
+import 'package:nido/core/formatters/money_input_formatter.dart';
 import '../../../../core/utils/date_formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -104,6 +105,9 @@ class _MarcarPagadoDialogState extends ConsumerState<MarcarPagadoDialog> {
                 ),
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: const [
+                    BcpMoneyInputFormatter(),
+                  ],
                 validator: (val) {
                   if (val == null || val.trim().isEmpty) return 'Ingresa el monto';
                   final m = Money.tryParse(val);

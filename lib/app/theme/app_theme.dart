@@ -2,9 +2,24 @@ import 'package:flutter/material.dart';
 import '../constants/app_constants.dart';
 import 'app_colors.dart';
 
-/// Configuración de temas Material 3 cálidos y accesibles para Tablet.
+/// Configuración de temas Material 3 cálidos, proporcionales y accesibles para Móviles y Tablets.
 class AppTheme {
   AppTheme._();
+
+  static const _mobileTextTheme = TextTheme(
+    headlineLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: -0.5),
+    headlineMedium: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, letterSpacing: -0.5),
+    headlineSmall: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+    titleLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+    titleMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+    titleSmall: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+    bodyLarge: TextStyle(fontSize: 13.5),
+    bodyMedium: TextStyle(fontSize: 12.5),
+    bodySmall: TextStyle(fontSize: 11),
+    labelLarge: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+    labelMedium: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+    labelSmall: TextStyle(fontSize: 10),
+  );
 
   static ThemeData get lightTheme {
     final colorScheme = ColorScheme(
@@ -32,6 +47,7 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.backgroundLight,
+      textTheme: _mobileTextTheme,
       cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -43,23 +59,24 @@ class AppTheme {
       ),
       navigationRailTheme: NavigationRailThemeData(
         backgroundColor: AppColors.surfaceLightContainer,
-        selectedIconTheme: const IconThemeData(color: AppColors.primary, size: 28),
-        unselectedIconTheme: const IconThemeData(color: AppColors.onSurfaceLightVariant, size: 24),
+        selectedIconTheme: const IconThemeData(color: AppColors.primary, size: 26),
+        unselectedIconTheme: const IconThemeData(color: AppColors.onSurfaceLightVariant, size: 22),
         selectedLabelTextStyle: const TextStyle(
           color: AppColors.primary,
           fontWeight: FontWeight.w700,
-          fontSize: 13,
+          fontSize: 12,
         ),
         unselectedLabelTextStyle: const TextStyle(
           color: AppColors.onSurfaceLightVariant,
           fontWeight: FontWeight.w500,
-          fontSize: 12,
+          fontSize: 11,
         ),
         indicatorColor: AppColors.primaryContainer,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
+        isDense: true,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppConstants.inputBorderRadius),
           borderSide: const BorderSide(color: AppColors.outlineVariantLight),
@@ -72,25 +89,37 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppConstants.inputBorderRadius),
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          minimumSize: const Size(88, AppConstants.minTouchTargetSize),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          visualDensity: VisualDensity.compact,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppConstants.inputBorderRadius),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          textStyle: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          visualDensity: VisualDensity.compact,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppConstants.inputBorderRadius),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          textStyle: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size(88, AppConstants.minTouchTargetSize),
+          visualDensity: VisualDensity.compact,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppConstants.inputBorderRadius),
           ),
           side: const BorderSide(color: AppColors.outlineLight),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          textStyle: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
         ),
       ),
       dividerTheme: const DividerThemeData(
@@ -127,6 +156,7 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.backgroundDark,
+      textTheme: _mobileTextTheme,
       cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -138,23 +168,24 @@ class AppTheme {
       ),
       navigationRailTheme: NavigationRailThemeData(
         backgroundColor: AppColors.surfaceDarkContainer,
-        selectedIconTheme: const IconThemeData(color: AppColors.primaryDark, size: 28),
-        unselectedIconTheme: const IconThemeData(color: AppColors.onSurfaceDarkVariant, size: 24),
+        selectedIconTheme: const IconThemeData(color: AppColors.primaryDark, size: 26),
+        unselectedIconTheme: const IconThemeData(color: AppColors.onSurfaceDarkVariant, size: 22),
         selectedLabelTextStyle: const TextStyle(
           color: AppColors.primaryDark,
           fontWeight: FontWeight.w700,
-          fontSize: 13,
+          fontSize: 12,
         ),
         unselectedLabelTextStyle: const TextStyle(
           color: AppColors.onSurfaceDarkVariant,
           fontWeight: FontWeight.w500,
-          fontSize: 12,
+          fontSize: 11,
         ),
         indicatorColor: AppColors.primaryDarkContainer,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surfaceDarkHigh,
+        isDense: true,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppConstants.inputBorderRadius),
           borderSide: const BorderSide(color: AppColors.outlineVariantDark),
@@ -167,15 +198,26 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppConstants.inputBorderRadius),
           borderSide: const BorderSide(color: AppColors.primaryDark, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          minimumSize: const Size(88, AppConstants.minTouchTargetSize),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          visualDensity: VisualDensity.compact,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppConstants.inputBorderRadius),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          textStyle: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          visualDensity: VisualDensity.compact,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppConstants.inputBorderRadius),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          textStyle: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
         ),
       ),
       dividerTheme: const DividerThemeData(

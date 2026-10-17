@@ -1,4 +1,5 @@
-﻿import 'dart:io';
+import 'package:nido/core/formatters/money_input_formatter.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column, isNull, isNotNull;
@@ -143,9 +144,13 @@ class _NuevaCotizacionDialogState extends ConsumerState<NuevaCotizacionDialog> {
                               child: TextFormField(
                                 controller: _montoCtrl,
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: const [
+                    BcpMoneyInputFormatter(),
+                  ],
                                 decoration: const InputDecoration(
                                   labelText: 'Monto Cotizado *',
                                   prefixText: 'S/ ',
+
                                   hintText: '0.00',
                                   prefixIcon: Icon(Icons.attach_money_rounded),
                                 ),
