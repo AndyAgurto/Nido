@@ -29,7 +29,9 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final requiereRecordatorioAsync = ref.watch(requiereRecordatorioRespaldoProvider);
+    final requiereRecordatorioAsync = ref.watch(
+      requiereRecordatorioRespaldoProvider,
+    );
     final ultimoRespaldoAsync = ref.watch(ultimoRespaldoFechaProvider);
     final diasDesdeRespaldoAsync = ref.watch(diasDesdeUltimoRespaldoProvider);
     final tienePinAsync = ref.watch(tienePinConfiguradoProvider);
@@ -45,18 +47,22 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
     final isMobile = MediaQuery.of(context).size.width < 720;
 
     return Scaffold(
-      appBar: isMobile ? null : AppBar(
-        leading: isMobile
-            ? Builder(
-                builder: (ctx) => IconButton(
-                  icon: const Icon(Icons.menu_rounded),
-                  tooltip: 'Menú',
-                  onPressed: () => ctx.findRootAncestorStateOfType<ScaffoldState>()?.openDrawer(),
-                ),
-              )
-            : null,
-        title: const Text('Ajustes del Sistema'),
-      ),
+      appBar: isMobile
+          ? null
+          : AppBar(
+              leading: isMobile
+                  ? Builder(
+                      builder: (ctx) => IconButton(
+                        icon: const Icon(Icons.menu_rounded),
+                        tooltip: 'Menú',
+                        onPressed: () => ctx
+                            .findRootAncestorStateOfType<ScaffoldState>()
+                            ?.openDrawer(),
+                      ),
+                    )
+                  : null,
+              title: const Text('Ajustes del Sistema'),
+            ),
       body: SingleChildScrollView(
         padding: EdgeInsets.only(
           left: 16.0,
@@ -92,22 +98,25 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
                       ),
                     ),
                     const SizedBox(width: 14),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Ajustes del Sistema',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Ajustes del Sistema',
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        Text(
-                          'Personalización, seguridad biométrica, respaldos y datos de prueba',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                          // 2. EL TEXTO YA NO LLEVA EXPANDED NI FLEXIBLE:
+                          Text(
+                            'Personalización, seguridad biométrica, respaldos y datos de prueba',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -115,9 +124,16 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
 
                 // 1. BANNER DE RECORDATORIO DE RESPALDO (>30 días o nunca)
                 if (requiereRecordatorio)
-                  _buildBannerRecordatorioRespaldo(theme, diasDesdeRespaldoAsync.value)
+                  _buildBannerRecordatorioRespaldo(
+                    theme,
+                    diasDesdeRespaldoAsync.value,
+                  )
                 else
-                  _buildBannerEstadoRespaldoOk(theme, ultimoRespaldoAsync.value, diasDesdeRespaldoAsync.value),
+                  _buildBannerEstadoRespaldoOk(
+                    theme,
+                    ultimoRespaldoAsync.value,
+                    diasDesdeRespaldoAsync.value,
+                  ),
 
                 const SizedBox(height: 24),
 
@@ -178,7 +194,11 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
           children: [
             Row(
               children: [
-                const Icon(Icons.palette_outlined, color: AppColors.primary, size: 24),
+                const Icon(
+                  Icons.palette_outlined,
+                  color: AppColors.primary,
+                  size: 24,
+                ),
                 const SizedBox(width: 10),
                 Text(
                   'Apariencia y Modo Visual',
@@ -222,7 +242,8 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
                     ],
                     selected: {currentMode},
                     onSelectionChanged: (newSelection) {
-                      ref.read(themeModeProvider.notifier).state = newSelection.first;
+                      ref.read(themeModeProvider.notifier).state =
+                          newSelection.first;
                     },
                   ),
                 );
@@ -248,7 +269,11 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
           children: [
             Row(
               children: [
-                const Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 24),
+                const Icon(
+                  Icons.auto_awesome_rounded,
+                  color: AppColors.primary,
+                  size: 24,
+                ),
                 const SizedBox(width: 10),
                 Text(
                   'Datos de Prueba y Tutorial',
@@ -275,7 +300,9 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
                   style: FilledButton.styleFrom(
                     minimumSize: const Size(160, 48), // Touch target >= 48dp
                   ),
-                  onPressed: _estaCargandoDemo ? null : _confirmarYCargarDatosDemo,
+                  onPressed: _estaCargandoDemo
+                      ? null
+                      : _confirmarYCargarDatosDemo,
                   icon: _estaCargandoDemo
                       ? const SizedBox(
                           width: 18,
@@ -385,7 +412,10 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
       builder: (ctx) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Theme.of(ctx).colorScheme.error),
+            Icon(
+              Icons.warning_amber_rounded,
+              color: Theme.of(ctx).colorScheme.error,
+            ),
             const SizedBox(width: 10),
             const Text('¿Restablecer Base Limpia?'),
           ],
@@ -399,7 +429,9 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
             child: const Text('Cancelar'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Theme.of(ctx).colorScheme.error),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Sí, Restablecer'),
           ),
@@ -491,14 +523,20 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.warning,
                 foregroundColor: Colors.black87,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
               onPressed: _estaExportando ? null : _exportarRespaldoZip,
               icon: _estaExportando
                   ? const SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black87),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.black87,
+                      ),
                     )
                   : const Icon(Icons.download_rounded),
               label: const Text('Respaldar Ahora (.zip)'),
@@ -509,7 +547,11 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
     );
   }
 
-  Widget _buildBannerEstadoRespaldoOk(ThemeData theme, String? fechaIso, int? dias) {
+  Widget _buildBannerEstadoRespaldoOk(
+    ThemeData theme,
+    String? fechaIso,
+    int? dias,
+  ) {
     if (fechaIso == null) return const SizedBox.shrink();
 
     return Container(
@@ -518,13 +560,15 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
       decoration: BoxDecoration(
         color: AppColors.income.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: AppColors.income.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: AppColors.income.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.check_circle_rounded, color: AppColors.income, size: 22),
+          const Icon(
+            Icons.check_circle_rounded,
+            color: AppColors.income,
+            size: 22,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -558,7 +602,11 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
           children: [
             Row(
               children: [
-                const Icon(Icons.security_rounded, color: AppColors.primary, size: 24),
+                const Icon(
+                  Icons.security_rounded,
+                  color: AppColors.primary,
+                  size: 24,
+                ),
                 const SizedBox(width: 10),
                 Text(
                   'Seguridad de Acceso Local',
@@ -583,13 +631,18 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: (tienePin ? AppColors.income : theme.colorScheme.surfaceContainerHighest)
-                      .withValues(alpha: 0.2),
+                  color:
+                      (tienePin
+                              ? AppColors.income
+                              : theme.colorScheme.surfaceContainerHighest)
+                          .withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   tienePin ? Icons.pin_drop_rounded : Icons.pin_outlined,
-                  color: tienePin ? AppColors.income : theme.colorScheme.onSurfaceVariant,
+                  color: tienePin
+                      ? AppColors.income
+                      : theme.colorScheme.onSurfaceVariant,
                 ),
               ),
               title: const Text('PIN de Acceso (4 a 6 dígitos)'),
@@ -603,14 +656,18 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
                 children: [
                   if (tienePin) ...[
                     OutlinedButton(
-                      style: OutlinedButton.styleFrom(minimumSize: const Size(100, 44)),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(100, 44),
+                      ),
                       onPressed: _mostrarDialogoDesactivarPin,
                       child: const Text('Desactivar PIN'),
                     ),
                     const SizedBox(width: 8),
                   ],
                   FilledButton.tonal(
-                    style: FilledButton.styleFrom(minimumSize: const Size(100, 44)),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(100, 44),
+                    ),
                     onPressed: _mostrarDialogoConfigurarPin,
                     child: Text(tienePin ? 'Cambiar PIN' : 'Activar PIN'),
                   ),
@@ -619,8 +676,6 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
             ),
 
             const Divider(height: 20),
-
-            
 
             const Divider(height: 20),
 
@@ -649,7 +704,9 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
                     ),
                   ),
                   OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(minimumSize: const Size(140, 44)),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(140, 44),
+                    ),
                     onPressed: () {
                       ref.read(estaBloqueadoProvider.notifier).state = true;
                     },
@@ -681,7 +738,11 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
           children: [
             Row(
               children: [
-                const Icon(Icons.archive_outlined, color: AppColors.primary, size: 24),
+                const Icon(
+                  Icons.archive_outlined,
+                  color: AppColors.primary,
+                  size: 24,
+                ),
                 const SizedBox(width: 10),
                 Text(
                   'Copia de Seguridad y Restauración (.zip)',
@@ -707,7 +768,9 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
                 final exportBox = Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    color: theme.colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.3,
+                    ),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: theme.colorScheme.outlineVariant),
                   ),
@@ -716,28 +779,42 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.cloud_upload_outlined, color: AppColors.primary),
+                          const Icon(
+                            Icons.cloud_upload_outlined,
+                            color: AppColors.primary,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Exportar Respaldo',
-                            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Empaqueta toda tu información en un archivo .zip para guardarlo en tu tarjeta SD o pendrive USB.',
-                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       FilledButton.icon(
-                        style: FilledButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
-                        onPressed: _estaExportando ? null : _exportarRespaldoZip,
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 48),
+                        ),
+                        onPressed: _estaExportando
+                            ? null
+                            : _exportarRespaldoZip,
                         icon: _estaExportando
                             ? const SizedBox(
                                 width: 18,
                                 height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
                               )
                             : const Icon(Icons.file_download_outlined),
                         label: const Text('Exportar Archivo .zip'),
@@ -749,7 +826,9 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
                 final importBox = Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    color: theme.colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.3,
+                    ),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: theme.colorScheme.outlineVariant),
                   ),
@@ -758,28 +837,41 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.settings_backup_restore_rounded, color: AppColors.warning),
+                          const Icon(
+                            Icons.settings_backup_restore_rounded,
+                            color: AppColors.warning,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Restaurar Respaldo',
-                            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Restaura tus datos desde un respaldo previo. Se crea automáticamente una copia de seguridad previa.',
-                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
-                        onPressed: _estaImportando ? null : _seleccionarEImportarRespaldoZip,
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 48),
+                        ),
+                        onPressed: _estaImportando
+                            ? null
+                            : _seleccionarEImportarRespaldoZip,
                         icon: _estaImportando
                             ? const SizedBox(
                                 width: 18,
                                 height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Icon(Icons.folder_open_rounded),
                         label: const Text('Importar Archivo .zip'),
@@ -836,7 +928,11 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
               child: Image.asset(
                 'assets/images/logo.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const Icon(Icons.home_rounded, color: AppColors.primary, size: 28),
+                errorBuilder: (_, _, _) => const Icon(
+                  Icons.home_rounded,
+                  color: AppColors.primary,
+                  size: 28,
+                ),
               ),
             ),
             const SizedBox(width: 16),
@@ -846,7 +942,9 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
                 children: [
                   Text(
                     'Nido Finanzas v1.0.0 (Esquema v${RespaldoService.versionEsquemaActual})',
-                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -870,7 +968,10 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
       final db = ref.read(databaseProvider);
       final writer = ref.read(auditedWriterProvider);
 
-      final file = await RespaldoService.exportarRespaldo(db: db, writer: writer);
+      final file = await RespaldoService.exportarRespaldo(
+        db: db,
+        writer: writer,
+      );
 
       ref.invalidate(ultimoRespaldoFechaProvider);
       ref.invalidate(diasDesdeUltimoRespaldoProvider);
@@ -947,12 +1048,19 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.shield_outlined, size: 20, color: AppColors.primary),
+                  Icon(
+                    Icons.shield_outlined,
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Por seguridad, Nido creará una copia previa automática de tu base activa antes de restaurar.',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -966,7 +1074,10 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
             child: const Text('Cancelar'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.warning, foregroundColor: Colors.black87),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.warning,
+              foregroundColor: Colors.black87,
+            ),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Sí, Restaurar Datos'),
           ),
@@ -996,7 +1107,9 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Respaldo restaurado exitosamente. Los datos han sido actualizados.'),
+          content: Text(
+            'Respaldo restaurado exitosamente. Los datos han sido actualizados.',
+          ),
           backgroundColor: AppColors.income,
           duration: Duration(seconds: 4),
         ),
@@ -1063,7 +1176,11 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
                       const SizedBox(height: 8),
                       Text(
                         errorLocal!,
-                        style: const TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ],
@@ -1079,9 +1196,12 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
                     final p1 = pinController.text.trim();
                     final p2 = confirmController.text.trim();
 
-                    if (p1.length < 4 || p1.length > 6 || int.tryParse(p1) == null) {
+                    if (p1.length < 4 ||
+                        p1.length > 6 ||
+                        int.tryParse(p1) == null) {
                       setModalState(() {
-                        errorLocal = 'El PIN debe tener entre 4 y 6 dígitos numéricos.';
+                        errorLocal =
+                            'El PIN debe tener entre 4 y 6 dígitos numéricos.';
                       });
                       return;
                     }
@@ -1100,7 +1220,9 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('PIN configurado exitosamente con sal y hash SHA-256.'),
+                          content: Text(
+                            'PIN configurado exitosamente con sal y hash SHA-256.',
+                          ),
                           backgroundColor: AppColors.income,
                         ),
                       );
@@ -1147,13 +1269,12 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('PIN de acceso desactivado.'),
-          ),
+          const SnackBar(content: Text('PIN de acceso desactivado.')),
         );
       }
     }
   }
+
   Widget _buildSeccionCategorias(BuildContext context, ThemeData theme) {
     return Card(
       elevation: 0,
@@ -1168,7 +1289,11 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
           children: [
             Row(
               children: [
-                const Icon(Icons.category_outlined, color: AppColors.primary, size: 24),
+                const Icon(
+                  Icons.category_outlined,
+                  color: AppColors.primary,
+                  size: 24,
+                ),
                 const SizedBox(width: 10),
                 Text(
                   'Categorías del Hogar y Proyectos',
@@ -1197,7 +1322,9 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
                 child: const Icon(Icons.tune_rounded, color: AppColors.primary),
               ),
               title: const Text('Administrar Categorías'),
-              subtitle: const Text('Crear, editar, activar o cambiar colores e íconos'),
+              subtitle: const Text(
+                'Crear, editar, activar o cambiar colores e íconos',
+              ),
               trailing: FilledButton.tonalIcon(
                 onPressed: () {
                   Navigator.push(
@@ -1214,5 +1341,4 @@ class _AjustesPageState extends ConsumerState<AjustesPage> {
       ),
     );
   }
-
 }

@@ -14,11 +14,11 @@ class CategoriasPage extends ConsumerWidget {
   const CategoriasPage({super.key});
 
   static const List<({String key, String label, IconData icon})> _tiposTabs = [
+    (key: 'todos', label: 'Todas', icon: Icons.category_outlined),
     (key: 'gastoVariable', label: 'Gastos Variables', icon: Icons.shopping_bag_outlined),
     (key: 'gastoFijo', label: 'Gastos Fijos', icon: Icons.receipt_long_outlined),
     (key: 'ingreso', label: 'Ingresos', icon: Icons.trending_up_rounded),
     (key: 'proyecto', label: 'Proyectos del Hogar', icon: Icons.handyman_outlined),
-    (key: 'todos', label: 'Todas', icon: Icons.category_outlined),
   ];
 
   @override
@@ -29,6 +29,35 @@ class CategoriasPage extends ConsumerWidget {
     final categoriasAsync = ref.watch(categoriasFiltradasStreamProvider);
 
     final isMobile = MediaQuery.of(context).size.width < 720;
+
+    // Dividir la lista en 2 sublistas (pares en fila superior, impares en fila inferior)
+    final fila1 = [
+      for (int i = 0; i < _tiposTabs.length; i += 2) _tiposTabs[i]
+    ];
+    final fila2 = [
+      for (int i = 1; i < _tiposTabs.length; i += 2) _tiposTabs[i]
+    ];
+
+    Widget _buildChip(dynamic tab) {
+      final isSelected = tipoActual == tab.key;
+      return ChoiceChip(
+        avatar: Icon(
+          tab.icon,
+          size: 16,
+          color: isSelected ? theme.colorScheme.onPrimary : null,
+        ),
+        label: Text(tab.label),
+        selected: isSelected,
+        showCheckmark: false, // Opcional: oculta el check al seleccionar para que no cambie el ancho
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+        onSelected: (val) {
+          if (val) {
+            ref.read(categoriasFiltroTipoProvider.notifier).state = tab.key;
+          }
+        },
+      );
+    }
 
     return Scaffold(
       appBar: isMobile
@@ -65,27 +94,27 @@ class CategoriasPage extends ConsumerWidget {
         children: [
           // Barra de navegación por tipos (Deslizable horizontal para móviles)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             color: theme.colorScheme.surfaceContainerLowest,
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              child: Row(
-                children: _tiposTabs.map((tab) {
-                  final isSelected = tipoActual == tab.key;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: ChoiceChip(
-                      avatar: Icon(tab.icon, size: 16, color: isSelected ? theme.colorScheme.onPrimary : null),
-                      label: Text(tab.label),
-                      selected: isSelected,
-                      onSelected: (val) {
-                        if (val) {
-                          ref.read(categoriasFiltroTipoProvider.notifier).state = tab.key;
-                        }
-                      },
-                    ),
-                  );
-                }).toList(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: fila1.map((tab) => Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: _buildChip(tab),
+                    )).toList(),
+                  ),
+                  const SizedBox(height: 8), // Separación vertical exacta
+                  Row(
+                    children: fila2.map((tab) => Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: _buildChip(tab),
+                    )).toList(),
+                  ),
+                ],
               ),
             ),
           ),

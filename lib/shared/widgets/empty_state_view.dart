@@ -49,7 +49,9 @@ class EmptyStateView extends StatelessWidget {
                         : AppColors.primaryContainer.withValues(alpha: 0.5),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.primary.withValues(alpha: isDark ? 0.4 : 0.2),
+                      color: AppColors.primary.withValues(
+                        alpha: isDark ? 0.4 : 0.2,
+                      ),
                       width: 1.5,
                     ),
                   ),
@@ -88,10 +90,15 @@ class EmptyStateView extends StatelessWidget {
                   FilledButton.icon(
                     style: FilledButton.styleFrom(
                       minimumSize: const Size(180, 48), // Touch target >= 48dp
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                     ),
                     onPressed: onAction,
-                    icon: actionIcon != null ? Icon(actionIcon, size: 20) : const SizedBox.shrink(),
+                    icon: actionIcon != null
+                        ? Icon(actionIcon, size: 20)
+                        : const SizedBox.shrink(),
                     label: Text(
                       actionLabel!,
                       style: const TextStyle(fontWeight: FontWeight.w600),

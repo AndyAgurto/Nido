@@ -231,10 +231,12 @@ class _ResumenPresupuestoCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Ejecución Global del Presupuesto',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Text(
+                    'Ejecución Global del Presupuesto',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 Container(

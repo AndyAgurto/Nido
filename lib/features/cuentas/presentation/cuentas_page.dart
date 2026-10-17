@@ -23,6 +23,7 @@ class CuentasPage extends ConsumerWidget {
     final cuentasAsync = ref.watch(cuentasActivasStreamProvider);
     final selectedId = ref.watch(cuentaSeleccionadaIdProvider);
     final dineroTotalAsync = ref.watch(dineroTotalActualProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -37,7 +38,12 @@ class CuentasPage extends ConsumerWidget {
             const SizedBox(width: 4),
             IconButton.filled(
               onPressed: () => _mostrarDialogoCrearEditar(context, ref),
-              icon: const Icon(Icons.add_rounded),
+              style: IconButton.styleFrom(
+                backgroundColor: isDark? AppColors.primaryDark : AppColors.primary,
+                foregroundColor: isDark? AppColors.primary : Colors.white,
+              ),
+              icon: const Icon(Icons.add_rounded,
+              ),
               tooltip: 'Nueva Cuenta',
             ),
             const SizedBox(width: 8),

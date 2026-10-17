@@ -59,23 +59,25 @@ class ReportesPage extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Reportes Financieros',
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Reportes Financieros',
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Análisis de tendencias, distribución de gastos y exportación 100% local',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                      const SizedBox(height: 4),
+                      Text(
+                        'Análisis de tendencias, distribución de gastos y exportación 100% local',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 if (!isMobile)
                   FilledButton.icon(

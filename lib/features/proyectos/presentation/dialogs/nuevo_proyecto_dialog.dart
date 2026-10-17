@@ -150,6 +150,7 @@ class _NuevoProyectoDialogState extends ConsumerState<NuevoProyectoDialog> {
 
                             return DropdownButtonFormField<String>(
                               initialValue: effectiveTipo,
+                              isExpanded: true,
                               decoration: const InputDecoration(
                                 labelText: 'Tipo de Proyecto',
                                 prefixIcon: Icon(Icons.category_outlined),
@@ -158,7 +159,8 @@ class _NuevoProyectoDialogState extends ConsumerState<NuevoProyectoDialog> {
                                   .map(
                                     (e) => DropdownMenuItem(
                                       value: e.key,
-                                      child: Text(e.value),
+                                      child: Text(e.value, maxLines: 1, // Limita a una sola línea (o las que necesites)
+                                        overflow: TextOverflow.ellipsis),
                                     ),
                                   )
                                   .toList(),
@@ -272,8 +274,8 @@ class _NuevoProyectoDialogState extends ConsumerState<NuevoProyectoDialog> {
                           controller: _descripcionCtrl,
                           maxLines: 3,
                           decoration: const InputDecoration(
-                            labelText: 'Descripción o Notas del Proyecto',
-                            hintText: 'Detalles, objetivos, medidas, consideraciones especiales...',
+                            labelText: 'Notas del Proyecto',
+                            hintText: 'Detalles, objetivos, medidas,etc.',
                             prefixIcon: Icon(Icons.notes_rounded),
                           ),
                         ),

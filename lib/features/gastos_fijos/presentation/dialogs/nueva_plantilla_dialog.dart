@@ -58,7 +58,7 @@ class _NuevaPlantillaDialogState
             color: _esGasto ? AppColors.expense : AppColors.income,
           ),
           const SizedBox(width: 10),
-          Text(_esGasto ? 'Nueva Plantilla de Gasto Fijo' : 'Nueva Plantilla de Ingreso Fijo'),
+          Expanded(child: Text(_esGasto ? 'Nueva Plantilla de Gasto Fijo' : 'Nueva Plantilla de Ingreso Fijo')),
         ],
       ),
       content: SizedBox(
@@ -108,7 +108,7 @@ class _NuevaPlantillaDialogState
                       child: TextFormField(
                         controller: _montoCtrl,
                         decoration: const InputDecoration(
-                          labelText: 'Monto Estimado (PEN)',
+                          labelText: 'Monto Estimado',
                           prefixText: 'S/ ',
                         ),
                         keyboardType:
@@ -132,7 +132,7 @@ class _NuevaPlantillaDialogState
                       child: TextFormField(
                         controller: _diaCtrl,
                         decoration: InputDecoration(
-                          labelText: _esGasto ? 'Día vencimiento' : 'Día cobro',
+                          labelText: _esGasto ? 'Día venc.' : 'Día cobro',
                           hintText: '1 - 31',
                         ),
                         keyboardType: TextInputType.number,

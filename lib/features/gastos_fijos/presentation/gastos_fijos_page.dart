@@ -276,10 +276,13 @@ class _ControlMensualTab extends ConsumerWidget {
                         style: theme.textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        'Genera las instancias automáticamente a partir de tus plantillas activas.',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.outline,
+                      Padding(
+                        padding: const EdgeInsets.all(30.0),
+                        child: Text(
+                          'Genera las instancias automáticamente a partir de tus plantillas activas.',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.outline,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
